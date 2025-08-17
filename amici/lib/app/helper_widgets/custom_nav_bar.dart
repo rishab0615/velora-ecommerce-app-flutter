@@ -21,8 +21,8 @@ class CustomNavBarItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 8.5.h,
-      padding: EdgeInsets.only(top: 1.4.h),
+      height: 7.h,
+      padding: EdgeInsets.only(top: 1.h),
 
       child: InkWell(
         onTap: onTap,
@@ -39,13 +39,13 @@ class CustomNavBarItem extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 10.sp,
+                fontSize: 8.sp,
                 color: HexColor("#626262"),
               ),
             ),
 
              // SizedBox(height: 0.3.h) ,
-             SizedBox(height: 1.5.h,),
+             SizedBox(height: 1.h,),
 
 
           ],

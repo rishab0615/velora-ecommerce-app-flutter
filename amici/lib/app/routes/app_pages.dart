@@ -1,3 +1,7 @@
+import '../../app/modules/email_verification_screen_module/email_verification_screen_page.dart';
+import '../../app/modules/email_verification_screen_module/email_verification_screen_bindings.dart';
+import '../../app/modules/email_verification_screen_module/email_verification_screen_page.dart';
+import '../../app/modules/email_verification_screen_module/email_verification_screen_bindings.dart';
 import '../../app/modules/product_detail_module/product_detail_page.dart';
 import '../../app/modules/product_detail_module/product_detail_bindings.dart';
 import '../../app/data/models/store_product_model.dart';
@@ -82,6 +86,11 @@ abstract class AppPages {
         price: 0.0,
       )),
       binding: ProductDetailBinding(),
+    ),
+    GetPage(
+      name: Routes.EMAIL_VERIFICATION_SCREEN,
+      page: () => EmailVerificationPage(),
+      binding: EmailVerificationScreenBinding(),
     ),
   ];
 }

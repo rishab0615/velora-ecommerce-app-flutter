@@ -23,7 +23,7 @@ class HomeScreenPage extends GetView<HomeScreenController> {
           child: Scaffold(
             backgroundColor: Colors.white,
             appBar: AppBar(
-              toolbarHeight: 10.h,
+              toolbarHeight: 8.h,
               elevation: 0,
               backgroundColor: Colors.white,
               leadingWidth: 40.w,
@@ -33,10 +33,10 @@ class HomeScreenPage extends GetView<HomeScreenController> {
                 child: Stack(
                   alignment: Alignment.topLeft,
                   children: <Widget>[
-                    TextWidget(text: "Hello,", size: 12.sp, bold: FontWeight.w400,color: HexColor("#575757"),),
+                    TextWidget(text: "Hello,", size: 10.sp, bold: FontWeight.w400,color: HexColor("#575757"),),
                     Padding(
                       padding: EdgeInsets.only(top: 1.6.h),
-                      child: TextWidget(text: "Trish",overflow: TextOverflow.ellipsis, size: 24.sp, bold: FontWeight.w600,color: Colors.black,),
+                      child: TextWidget(text: "Trish",overflow: TextOverflow.ellipsis, size: 20.sp, bold: FontWeight.w600,color: Colors.black,),
                     ),
                   ],
                 ),
@@ -48,51 +48,53 @@ class HomeScreenPage extends GetView<HomeScreenController> {
                     child: Image.asset("assets/images/amici_logo.jpg")),
               ],
             ),
-            bottomNavigationBar: Container(
-              padding: EdgeInsets.only(bottom: 1.h),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1), // Shadow color
-                    spreadRadius: 1.8.w, // Spread radius
-                    blurRadius: 5, // Blur radius
-                    offset: Offset(0, 3), // Changes position of shadow
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  CustomNavBarItem(
-                    svg: "assets/images/home.svg",
-                    label: 'Store',
-                    isSelected: homeScreenController.currentIndex == 0,
-                    onTap: () {
-                      homeScreenController.currentIndex = 0;
-                      homeScreenController.update();
-                    }, selectedSvg: 'assets/images/selectedHome.svg',
-                  ),
-                  CustomNavBarItem(
-                    svg: "assets/images/shopping-cart-outline.svg",
-                    label: 'My Cart',
-                    isSelected: homeScreenController.currentIndex == 1,
-                    onTap: () async{
-                      homeScreenController.currentIndex = 1;
-                      homeScreenController.update();
-                    }, selectedSvg: "assets/images/shopping-cart-filled-commercial-symbol.svg",
-                  ),
-                  CustomNavBarItem(
-                    svg: "assets/images/user.svg",
-                    label: 'Profile',
-                    isSelected: homeScreenController.currentIndex == 2,
-                    onTap: () async{
-                      homeScreenController.currentIndex = 2;
-                      homeScreenController.update();
-                    }, selectedSvg: "assets/images/selectedUser.svg",
-                  ),
+            bottomNavigationBar: SafeArea(
+              child: Container(
+                // padding: EdgeInsets.only(bottom: 1.h),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1), // Shadow color
+                      spreadRadius: 1.8.w, // Spread radius
+                      blurRadius: 5, // Blur radius
+                      offset: Offset(0, 3), // Changes position of shadow
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    CustomNavBarItem(
+                      svg: "assets/images/home.svg",
+                      label: 'Store',
+                      isSelected: homeScreenController.currentIndex == 0,
+                      onTap: () {
+                        homeScreenController.currentIndex = 0;
+                        homeScreenController.update();
+                      }, selectedSvg: 'assets/images/selectedHome.svg',
+                    ),
+                    CustomNavBarItem(
+                      svg: "assets/images/shopping-cart-outline.svg",
+                      label: 'My Cart',
+                      isSelected: homeScreenController.currentIndex == 1,
+                      onTap: () async{
+                        homeScreenController.currentIndex = 1;
+                        homeScreenController.update();
+                      }, selectedSvg: "assets/images/shopping-cart-filled-commercial-symbol.svg",
+                    ),
+                    CustomNavBarItem(
+                      svg: "assets/images/user.svg",
+                      label: 'Profile',
+                      isSelected: homeScreenController.currentIndex == 2,
+                      onTap: () async{
+                        homeScreenController.currentIndex = 2;
+                        homeScreenController.update();
+                      }, selectedSvg: "assets/images/selectedUser.svg",
+                    ),
 
-                ],
+                  ],
+                ),
               ),
             ),
             body: homeScreenController.widgetOptions.elementAt(homeScreenController.currentIndex),

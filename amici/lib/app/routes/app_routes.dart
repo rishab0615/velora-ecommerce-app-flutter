@@ -14,4 +14,5 @@ abstract class Routes {
   static const MY_CART = '/my_cart'; // MyCart page
   static const PROFILE_SCREEN = '/profile_screen'; // ProfileScreen page
   static const PRODUCT_DETAIL = '/product_detail'; // product_detail page
+  static const EMAIL_VERIFICATION_SCREEN = '/email_verification_screen'; // Email_verification_screen page
 }

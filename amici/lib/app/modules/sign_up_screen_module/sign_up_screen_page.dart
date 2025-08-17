@@ -348,40 +348,46 @@ class SignUpScreenPage extends GetView<SignUpScreenController> {
                           ),
                           signUpScreenController.isLoading==false?
                           SubmitButtonHelper(
-                              text: "Sign Up",
-                              onTap: (){
-                                FocusScope.of(context).unfocus();
-                                if(Validators().validateCompanyName(signUpScreenController.companyNameController.text) != null){
-                                   DioClient.get().toAst(Validators().validateCompanyName(signUpScreenController.companyNameController.text).toString());
-                                  return;
-                                }
-                                if(Validators().validateEmailForm(signUpScreenController.emailController.text) != null){
-                                   DioClient.get().toAst(Validators().validateEmailForm(signUpScreenController.emailController.text).toString());
-                                  return;
-                                }
-                                if(Validators().validatePhone(signUpScreenController.phoneController.text) != null){
-                                   DioClient.get().toAst(Validators().validatePhone(signUpScreenController.phoneController.text).toString());
-                                  return;
-                                }
-                                if(Validators().validatePassword(signUpScreenController.passwordController.text) != null){
-                                   DioClient.get().toAst(Validators().validatePassword(signUpScreenController.passwordController.text).toString());
-                                  return;
-                                }
-                                if(Validators().validateConfirmPassword(signUpScreenController.confirmPassController.text, signUpScreenController.passwordController.text) != null){
-                                   DioClient.get().toAst(Validators().validateConfirmPassword(signUpScreenController.confirmPassController.text,signUpScreenController.passwordController.text).toString());
-                                  return;
-                                }
-                                if(signUpScreenController.checkBoxValue == false){
-                                   DioClient.get().toAst("Please accept Terms & Conditions and Privacy Policies");
-                                }
-                                else{
-                                  signUpScreenController.isLoading  = true;
-                                  signUpScreenController.update();
-                                }
-                    
+                            text: "Sign Up",
+                            onTap: () {
+                              FocusScope.of(context).unfocus();
+
+                              // Validations...
+                              if (Validators().validateCompanyName(signUpScreenController.companyNameController.text) != null) {
+                                DioClient.get().toAst(Validators().validateCompanyName(signUpScreenController.companyNameController.text).toString());
+                                return;
                               }
-                          ):
-                          Center(
+                              if (Validators().validateEmailForm(signUpScreenController.emailController.text) != null) {
+                                DioClient.get().toAst(Validators().validateEmailForm(signUpScreenController.emailController.text).toString());
+                                return;
+                              }
+                              if (Validators().validatePhone(signUpScreenController.phoneController.text) != null) {
+                                DioClient.get().toAst(Validators().validatePhone(signUpScreenController.phoneController.text).toString());
+                                return;
+                              }
+                              if (Validators().validatePassword(signUpScreenController.passwordController.text) != null) {
+                                DioClient.get().toAst(Validators().validatePassword(signUpScreenController.passwordController.text).toString());
+                                return;
+                              }
+                              if (Validators().validateConfirmPassword(
+                                  signUpScreenController.confirmPassController.text,
+                                  signUpScreenController.passwordController.text) != null) {
+                                DioClient.get().toAst(Validators().validateConfirmPassword(
+                                    signUpScreenController.confirmPassController.text,
+                                    signUpScreenController.passwordController.text).toString());
+                                return;
+                              }
+                              if (!signUpScreenController.checkBoxValue) {
+                                DioClient.get().toAst("Please accept Terms & Conditions and Privacy Policies");
+                                return;
+                              }
+
+                              // 🔹 Call Firebase Signup
+                              signUpScreenController.handleSignUp();
+                            },
+                          )
+                          :
+                       const   Center(
                               child: CircularProgressIndicator(
                                 color:Colors.black,)
                           ),

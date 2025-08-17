@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "749151566379",
+    "project_id": "amici-clothing",
+    "storage_bucket": "amici-clothing.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:749151566379:android:bcb13cdf545f2661b0086e",
+        "android_client_info": {
+          "package_name": "com.amici.amici"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKntfqfe6sCHttKh0-6We1FyZT_qaPqso"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
