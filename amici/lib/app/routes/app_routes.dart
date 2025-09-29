@@ -15,4 +15,10 @@ abstract class Routes {
   static const PROFILE_SCREEN = '/profile_screen'; // ProfileScreen page
   static const PRODUCT_DETAIL = '/product_detail'; // product_detail page
   static const EMAIL_VERIFICATION_SCREEN = '/email_verification_screen'; // Email_verification_screen page
+  static const FORGOT_PASSWORD = '/forgot_password'; // ForgotPassword page
+  static const CATEGORY = '/category'; // category page
+  static const WISHLIST = '/wishlist'; // wishlist page
+  static const VIEW_ALL = '/view_all'; // ViewAll page
+  static const CHECKOUT_PAGE = '/checkout_page'; // CheckoutPage page
+  static const MY_ORDERS = '/my_orders'; // MyOrders page
 }

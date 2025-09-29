@@ -1,12 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../data/models/cart_item_model.dart';
 import '../../data/services/cart_service.dart';
+import '../../routes/app_pages.dart';
 
 class MyCartController extends GetxController {
+  // Services
+  final CartService _cartService = CartService.to;
+
   // Observable cart items
   final RxList<CartItemModel> cartItems = <CartItemModel>[].obs;
-  
+
   // Observable totals
   final RxDouble cartTotal = 0.0.obs;
   final RxDouble originalTotal = 0.0.obs;
@@ -15,75 +22,114 @@ class MyCartController extends GetxController {
   final RxDouble finalTotal = 0.0.obs;
   final RxInt itemCount = 0.obs;
   final RxBool hasFreeShipping = false.obs;
-  
+
   // Loading state
-  final RxBool isLoading = false.obs;
+  final RxBool isLoading = true.obs;
+
+  // Subscription for cart updates
+  late StreamSubscription<List<CartItemModel>> _cartSubscription;
 
   @override
   void onInit() {
     super.onInit();
-    loadCartItems();
+    _setupCartListener();
   }
 
-  /// Load cart items and calculate totals
-  void loadCartItems() {
-    isLoading.value = true;
-    
-    try {
-      final items = CartService.getCartItems();
-      cartItems.assignAll(items);
-      _calculateTotals();
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to load cart items: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    } finally {
-      isLoading.value = false;
-    }
+  @override
+  void onClose() {
+    _cartSubscription.cancel();
+    super.onClose();
   }
 
-  /// Calculate all totals
+  /// Setup listener for real-time cart updates
+  void _setupCartListener() {
+    print('🔄 Setting up cart listener...');
+    _cartSubscription = _cartService.getCartItemsStream().listen(
+          (items) {
+        print('📥 Received ${items.length} cart items');
+        cartItems.assignAll(items);
+        _calculateTotals();
+        isLoading.value = false;
+        print('✅ Cart updated successfully');
+      },
+      onError: (error) {
+        print('❌ Error in cart listener: $error');
+        isLoading.value = false;
+        Get.snackbar(
+          'Error',
+          'Failed to load cart items',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      },
+      onDone: () {
+        print('🎉 Cart stream completed');
+      },
+    );
+  }
+
+  /// Calculate cart totals
   void _calculateTotals() {
-    cartTotal.value = CartService.getCartTotal();
-    originalTotal.value = CartService.getCartOriginalTotal();
-    totalSavings.value = CartService.getTotalSavings();
-    shippingCost.value = CartService.getShippingCost();
-    finalTotal.value = CartService.getFinalTotal();
-    itemCount.value = CartService.getCartItemCount();
-    hasFreeShipping.value = CartService.hasFreeShipping();
+    // Calculate subtotal
+    double subtotal = cartItems.fold(0.0, (sum, item) {
+      return sum + (item.product.offerPrice * item.quantity);
+    });
+
+    // Calculate savings (if any)
+    double savings = cartItems.fold(0.0, (sum, item) {
+      final originalPrice = item.product.price ?? item.product.price;
+      return sum + ((originalPrice - item.product.offerPrice) * item.quantity);
+    });
+
+    // Calculate shipping (example: free shipping over $50)
+    double shipping = subtotal >= 50 ? 0 : 5.99;
+
+    // Update observables
+    cartTotal.value = subtotal;
+    originalTotal.value = subtotal + savings;
+    totalSavings.value = savings;
+    shippingCost.value = shipping;
+    finalTotal.value = subtotal + shipping;
+    itemCount.value = cartItems.fold(0, (sum, item) => sum + item.quantity);
+    hasFreeShipping.value = shipping == 0;
   }
 
   /// Update item quantity
-  void updateQuantity(String itemId, int newQuantity) {
+  Future<void> updateQuantity(String itemId, int newQuantity) async {
     try {
-      CartService.updateQuantity(itemId, newQuantity);
-      loadCartItems(); // Reload to update UI
-      
-      if (newQuantity <= 0) {
-        Get.snackbar(
-          'Removed',
-          'Item removed from cart',
-          snackPosition: SnackPosition.BOTTOM,
-          duration: Duration(seconds: 2),
-        );
+      print('🔄 Updating quantity for item $itemId to $newQuantity');
+
+      // Update the local state first for immediate UI update
+      final index = cartItems.indexWhere((item) => item.id == itemId);
+      if (index != -1) {
+        final updatedItem = cartItems[index].copyWith(quantity: newQuantity);
+        cartItems[index] = updatedItem;
+        _calculateTotals(); // Recalculate totals with the new quantity
       }
+
+      // Then update in Firestore
+      await _cartService.updateQuantity(itemId, newQuantity);
+
+      print('✅ Quantity updated successfully');
     } catch (e) {
+      print('❌ Error updating quantity: $e');
+      // Revert the local change if the server update fails
+      _cartService.getCartItemsStream().first.then((items) {
+        cartItems.assignAll(items);
+        _calculateTotals();
+      });
+
       Get.snackbar(
         'Error',
-        'Failed to update quantity: ${e.toString()}',
+        'Failed to update quantity',
         snackPosition: SnackPosition.BOTTOM,
       );
     }
   }
-
   /// Remove item from cart
-  void removeItem(String itemId) {
+  Future<void> removeItem(String itemId) async {
     try {
-      CartService.removeFromCart(itemId);
-      loadCartItems(); // Reload to update UI
-      
+      cartItems.removeWhere((item) => item.id == itemId);
+      await _cartService.removeFromCart(itemId);
       Get.snackbar(
         'Removed',
         'Item removed from cart',
@@ -93,51 +139,53 @@ class MyCartController extends GetxController {
     } catch (e) {
       Get.snackbar(
         'Error',
-        'Failed to remove item: ${e.toString()}',
+        'Failed to remove item',
         snackPosition: SnackPosition.BOTTOM,
       );
+      rethrow;
     }
   }
 
   /// Clear entire cart
-  void clearCart() {
-    Get.dialog(
-      AlertDialog(
-        title: Text('Clear Cart'),
-        content: Text('Are you sure you want to remove all items from your cart?'),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              try {
-                CartService.clearCart();
-                loadCartItems(); // Reload to update UI
-                Get.back();
-                
-                Get.snackbar(
-                  'Cart Cleared',
-                  'All items removed from cart',
-                  snackPosition: SnackPosition.BOTTOM,
-                  duration: Duration(seconds: 2),
-                );
-              } catch (e) {
-                Get.snackbar(
-                  'Error',
-                  'Failed to clear cart: ${e.toString()}',
-                  snackPosition: SnackPosition.BOTTOM,
-                );
-              }
-            },
-            child: Text('Clear', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+  Future<void> clearCart() async {
+    try {
+      await _cartService.clearCart();
+      Get.back();
+      // Get.snackbar(
+      //   'Cart Cleared',
+      //   'All items removed from cart',
+      //   snackPosition: SnackPosition.BOTTOM,
+      //   duration: Duration(seconds: 2),
+      // );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to clear cart',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
   }
-
+  /// Add item to cart
+  Future<void> addToCart(CartItemModel item) async {
+    try {
+      await _cartService.addToCart(item);
+      Get.snackbar(
+        'Success',
+        '${item.product.name} added to cart',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: Duration(seconds: 2),
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to add item to cart',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: Duration(seconds: 2),
+      );
+      print("This is he error  $e");
+      rethrow;
+    }
+  }
   /// Proceed to checkout
   void proceedToCheckout() {
     if (cartItems.isEmpty) {
@@ -148,14 +196,30 @@ class MyCartController extends GetxController {
       );
       return;
     }
-    
-    // Navigate to checkout page
-    Get.toNamed('/checkout');
-  }
 
-  /// Continue shopping
+    // Navigate to checkout page
+    Get.toNamed(Routes.CHECKOUT_PAGE);
+  }
+  /// Manually refresh cart items
+  Future<void> loadCartItems() async {
+    try {
+      isLoading.value = true;
+      // Force refresh by getting the latest cart items
+      final items = await _cartService.getCartItemsStream().first;
+      cartItems.assignAll(items);
+      _calculateTotals();
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to refresh cart items',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }  /// Continue shopping
   void continueShopping() {
-    Get.back(); // Go back to previous screen
+    Get.offAllNamed(Routes.HOME_SCREEN);
   }
 
   /// Get formatted price

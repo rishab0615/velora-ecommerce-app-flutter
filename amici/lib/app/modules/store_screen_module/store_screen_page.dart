@@ -3,9 +3,12 @@ import 'package:get/get.dart';
 import 'package:amici/app/modules/store_screen_module/store_screen_controller.dart';
 import 'package:amici/app/helper_widgets/store_widgets.dart';
 
+import '../../data/services/store_service.dart';
+import '../../routes/app_pages.dart';
+
 class StoreScreenPage extends StatelessWidget {
    StoreScreenPage({super.key});
-StoreScreenController controller = Get.put(StoreScreenController());
+  final StoreScreenController controller = Get.find<StoreScreenController>();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -16,8 +19,10 @@ StoreScreenController controller = Get.put(StoreScreenController());
           child: CustomScrollView(
             slivers: [
               // Search Bar
-              _buildSearchSection(),
-              
+              // _buildSearchSection(),
+              SliverToBoxAdapter(
+                child: SizedBox(height: 10),
+              ),
               // Hero Carousel
               _buildHeroCarousel(),
               
@@ -29,6 +34,9 @@ StoreScreenController controller = Get.put(StoreScreenController());
               
               // Sale Products Section
               _buildSaleProductsSection(),
+              
+              // Pre-Order Products Section
+              _buildPreOrderSection(),
               
               // Search Results Section
               _buildSearchResultsSection(),
@@ -49,7 +57,7 @@ StoreScreenController controller = Get.put(StoreScreenController());
   Widget _buildSearchSection() {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: StoreSearchBar(
           controller: TextEditingController(),
           onSearch: () {
@@ -65,22 +73,22 @@ StoreScreenController controller = Get.put(StoreScreenController());
   Widget _buildHeroCarousel() {
     return SliverToBoxAdapter(
       child: Container(
-        height: 250,
-        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        height: 220,
+        margin: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
-              blurRadius: 20,
-              offset: Offset(0, 10),
+              blurRadius: 14,
+              offset: Offset(0, 8),
             ),
           ],
         ),
         child: Stack(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(16),
               child: PageView.builder(
                 controller: controller.pageController,
                 itemCount: controller.carouselImages.length,
@@ -119,9 +127,9 @@ StoreScreenController controller = Get.put(StoreScreenController());
                         ),
                       ),
                       Positioned(
-                        bottom: 20,
-                        left: 20,
-                        right: 20,
+                        bottom: 14,
+                        left: 14,
+                        right: 14,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -129,16 +137,16 @@ StoreScreenController controller = Get.put(StoreScreenController());
                               'Made In Italy',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 28,
+                                fontSize: 24,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(height: 8),
+                            SizedBox(height: 6),
                             Text(
                               'Quality Designer Italian Fashion',
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.9),
-                                fontSize: 16,
+                                fontSize: 14,
                               ),
                             ),
                           ],
@@ -152,7 +160,7 @@ StoreScreenController controller = Get.put(StoreScreenController());
             
             // Carousel Indicators
             Positioned(
-              bottom: 60,
+              bottom: 48,
               left: 0,
               right: 0,
               child: Row(
@@ -162,9 +170,9 @@ StoreScreenController controller = Get.put(StoreScreenController());
                   (index) => Obx(() => GestureDetector(
                     onTap: () => controller.goToCarouselIndex(index),
                     child: Container(
-                      width: 8,
-                      height: 8,
-                      margin: EdgeInsets.symmetric(horizontal: 4),
+                      width: 6,
+                      height: 6,
+                      margin: EdgeInsets.symmetric(horizontal: 3),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: controller.currentCarouselIndex.value == index
@@ -189,11 +197,11 @@ StoreScreenController controller = Get.put(StoreScreenController());
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Text(
               'Categories',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
@@ -219,16 +227,16 @@ StoreScreenController controller = Get.put(StoreScreenController());
             }
 
             return Container(
-              height: 200,
+              height: 180,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: 12),
                 itemCount: controller.categories.length,
                 itemBuilder: (context, index) {
                   final category = controller.categories[index];
                   return Container(
-                    width: 160,
-                    margin: EdgeInsets.only(right: 16),
+                    width: 148,
+                    margin: EdgeInsets.only(right: 12),
                     child: CategoryTile(
                       category: category,
                       onTap: () => controller.navigateToCategory(category),
@@ -238,7 +246,7 @@ StoreScreenController controller = Get.put(StoreScreenController());
               ),
             );
           }),
-          SizedBox(height: 32),
+          SizedBox(height: 20),
         ],
       ),
     );
@@ -251,20 +259,20 @@ StoreScreenController controller = Get.put(StoreScreenController());
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   'New Arrivals',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
                 ),
                 TextButton(
-                  onPressed: () => Get.toNamed('/new_arrivals'),
+                  onPressed: () => Get.toNamed(Routes.VIEW_ALL, arguments: {"title": "New Arrivals", "products": controller.newArrivals}),
                   child: Text(
                     'View All',
                     style: TextStyle(
@@ -279,14 +287,14 @@ StoreScreenController controller = Get.put(StoreScreenController());
           Obx(() {
             if (controller.isLoadingNewArrivals.value) {
               return Container(
-                height: 280,
+                height: 248,
                 child: StoreLoadingIndicator(message: 'Loading new arrivals...'),
               );
             }
             
             if (controller.newArrivals.isEmpty) {
               return Container(
-                height: 280,
+                height: 248,
                 child: EmptyStateWidget(
                   title: 'No New Arrivals',
                   message: 'New products will appear here',
@@ -296,23 +304,23 @@ StoreScreenController controller = Get.put(StoreScreenController());
             }
 
             return Container(
-              height: 280,
+              height: 248,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: 12),
                 itemCount: controller.newArrivals.length,
                 itemBuilder: (context, index) {
                   final product = controller.newArrivals[index];
                   return ProductCard(
                     product: product,
                     onTap: () => controller.navigateToProductDetail(product),
-                    onFavoriteToggle: () => controller.toggleFavorite(product),
+                    // onFavoriteToggle: () => controller.toggleFavorite(product),
                   );
                 },
               ),
             );
           }),
-          SizedBox(height: 32),
+          SizedBox(height: 20),
         ],
       ),
     );
@@ -325,20 +333,20 @@ StoreScreenController controller = Get.put(StoreScreenController());
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   'On Sale',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
                 ),
                 TextButton(
-                  onPressed: () => Get.toNamed('/sale_products'),
+                  onPressed: () => Get.toNamed(Routes.VIEW_ALL, arguments: {"title": "On Sale", "products": controller.saleProducts}),
                   child: Text(
                     'View All',
                     style: TextStyle(
@@ -353,14 +361,14 @@ StoreScreenController controller = Get.put(StoreScreenController());
           Obx(() {
             if (controller.isLoadingSaleProducts.value) {
               return Container(
-                height: 280,
+                height: 248,
                 child: StoreLoadingIndicator(message: 'Loading sale products...'),
               );
             }
             
             if (controller.saleProducts.isEmpty) {
               return Container(
-                height: 280,
+                height: 248,
                 child: EmptyStateWidget(
                   title: 'No Sale Products',
                   message: 'Sale products will appear here',
@@ -370,26 +378,128 @@ StoreScreenController controller = Get.put(StoreScreenController());
             }
 
             return Container(
-              height: 280,
+              height: 248,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: 12),
                 itemCount: controller.saleProducts.length,
                 itemBuilder: (context, index) {
                   final product = controller.saleProducts[index];
                   return ProductCard(
                     product: product,
                     onTap: () => controller.navigateToProductDetail(product),
-                    onFavoriteToggle: () => controller.toggleFavorite(product),
+                    // onFavoriteToggle: () => controller.toggleFavorite(product),
                   );
                 },
               ),
             );
           }),
-          SizedBox(height: 32),
+          SizedBox(height: 20),
         ],
       ),
     );
+  }
+
+  /// Pre-Order products section
+  Widget _buildPreOrderSection() {
+    return SliverToBoxAdapter(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Pre-Order',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Month tabs (chips)
+          Obx(() {
+            // Explicitly read selected index to trigger rebuilds on change
+            final selectedIndex = controller.selectedPreOrderMonthIndex.value;
+            final months = controller.upcomingMonths;
+            if (months.isEmpty) return SizedBox.shrink();
+            return Container(
+              height: 40,
+              margin: EdgeInsets.only(left: 8, right: 8, bottom: 8),
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: months.length,
+                separatorBuilder: (_, __) => SizedBox(width: 6),
+                itemBuilder: (context, index) {
+                  final dt = months[index];
+                  final selected = selectedIndex == index;
+                  final label = _formatMonth(dt);
+                  return ChoiceChip(
+                    label: Text(label),
+                    selected: selected,
+                    onSelected: (_) => controller.selectPreOrderMonth(index),
+                    selectedColor: Colors.black,
+                    labelStyle: TextStyle(fontSize: 12, color: selected ? Colors.white : Colors.black87, fontWeight: FontWeight.w600),
+                    backgroundColor: Colors.grey.shade200,
+                    shape: StadiumBorder(side: BorderSide(color: selected ? Colors.black : Colors.grey.shade300)),
+                  );
+                },
+              ),
+            );
+          }),
+          Obx(() {
+            // Explicitly read selected index to trigger list rebuilds
+            final selectedIndex = controller.selectedPreOrderMonthIndex.value;
+            if (controller.isLoadingPreOrders.value) {
+              return Container(
+                height: 248,
+                child: StoreLoadingIndicator(message: 'Loading pre-order products...'),
+              );
+            }
+            
+            final items = controller.currentMonthPreOrders;
+            if (items.isEmpty) {
+              return Container(
+                height: 200,
+                child: EmptyStateWidget(
+                  title: 'No Pre-Order Items',
+                  message: 'Upcoming items for this month will appear here',
+                  icon: Icons.event_available_outlined,
+                ),
+              );
+            }
+
+            return Container(
+              height: 248,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final product = items[index];
+                  return ProductCard(
+                    product: product,
+                    onTap: () => controller.navigateToProductDetail(product),
+                    // onFavoriteToggle: () => controller.toggleFavorite(product),
+                  );
+                },
+              ),
+            );
+          }),
+          SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  String _formatMonth(DateTime dt) {
+    const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return '${names[dt.month - 1]} ${dt.year}';
   }
 
   /// Search results section
@@ -404,11 +514,11 @@ StoreScreenController controller = Get.put(StoreScreenController());
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Text(
                 'Search Results',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
                 ),
@@ -432,22 +542,22 @@ StoreScreenController controller = Get.put(StoreScreenController());
               )
             else
               Container(
-                height: 280,
+                height: 248,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  padding: EdgeInsets.symmetric(horizontal: 12),
                   itemCount: controller.searchResults.length,
                   itemBuilder: (context, index) {
                     final product = controller.searchResults[index];
                     return ProductCard(
                       product: product,
                       onTap: () => controller.navigateToProductDetail(product),
-                      onFavoriteToggle: () => controller.toggleFavorite(product),
+                      // onFavoriteToggle: () => controller.toggleFavorite(product),
                     );
                   },
                 ),
               ),
-            SizedBox(height: 32),
+            SizedBox(height: 20),
           ],
         ),
       );

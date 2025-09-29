@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:amici/app/modules/profile_screen_module/profile_screen_controller.dart';
 
-class ProfileScreenPage extends GetView<ProfileScreenController> {
-  const ProfileScreenPage({super.key});
+import '../../data/global_controllers/auth_controller.dart';
+import '../../routes/app_pages.dart';
+import '../wishlist_module/wishlist_controller.dart';
 
+class ProfileScreenPage extends GetView<ProfileScreenController> {
+   ProfileScreenPage({super.key});
+  final AuthController authController = Get.find<AuthController>();
+final wController=Get.find<WishlistController>();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,7 +102,7 @@ class ProfileScreenPage extends GetView<ProfileScreenController> {
           
           // User Info
           Text(
-            'Trish D.',
+            authController.user.value!.name,
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -108,7 +113,7 @@ class ProfileScreenPage extends GetView<ProfileScreenController> {
           SizedBox(height: 8),
           
           Text(
-            'trish@gmail.com',
+            authController.user.value!.email,
             style: TextStyle(
               fontSize: 16,
               color: Colors.grey[600],
@@ -118,7 +123,7 @@ class ProfileScreenPage extends GetView<ProfileScreenController> {
           SizedBox(height: 4),
           
           Text(
-            '+23 454545645',
+            authController.user.value!.phoneNumber,
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[500],
@@ -180,22 +185,24 @@ class ProfileScreenPage extends GetView<ProfileScreenController> {
           ),
           SizedBox(width: 16),
           Expanded(
-            child: _buildStatCard(
-              icon: Icons.favorite,
-              title: 'Wishlist',
-              value: '8',
-              color: Colors.red,
+            child: Obx(()=>
+               _buildStatCard(
+                icon: Icons.favorite,
+                title: 'Wishlist',
+                value: wController.wishlistItems.length.toString(),
+                color: Colors.red,
+              ),
             ),
           ),
-          SizedBox(width: 16),
-          Expanded(
-            child: _buildStatCard(
-              icon: Icons.star,
-              title: 'Reviews',
-              value: '5',
-              color: Colors.amber,
-            ),
-          ),
+          // SizedBox(width: 16),
+          // Expanded(
+          //   child: _buildStatCard(
+          //     icon: Icons.star,
+          //     title: 'Reviews',
+          //     value: '5',
+          //     color: Colors.amber,
+          //   ),
+          // ),
         ],
       ),
     );
@@ -279,9 +286,7 @@ class ProfileScreenPage extends GetView<ProfileScreenController> {
             icon: Icons.shopping_bag_outlined,
             title: 'My Orders',
             subtitle: 'Track your orders and view history',
-            onTap: () {
-              // Navigate to orders
-            },
+            onTap: ()=>Get.toNamed(Routes.MY_ORDERS),
           ),
           _buildDivider(),
           _buildMenuItem(
@@ -289,44 +294,19 @@ class ProfileScreenPage extends GetView<ProfileScreenController> {
             title: 'Wishlist',
             subtitle: 'View your saved items',
             onTap: () {
-              Get.toNamed('/wishlist');
+              Get.toNamed(Routes.WISHLIST);
             },
           ),
+
           _buildDivider(),
           _buildMenuItem(
-            icon: Icons.location_on_outlined,
-            title: 'Shipping Addresses',
-            subtitle: 'Manage your delivery addresses',
+            icon: Icons.logout,
+            title: 'Logout',
+            subtitle: 'Logout from your account',
             onTap: () {
-              // Navigate to addresses
+              _showLogoutDialog();
             },
-          ),
-          _buildDivider(),
-          _buildMenuItem(
-            icon: Icons.payment_outlined,
-            title: 'Payment Methods',
-            subtitle: 'Manage your payment options',
-            onTap: () {
-              // Navigate to payment methods
-            },
-          ),
-          _buildDivider(),
-          _buildMenuItem(
-            icon: Icons.help_outline,
-            title: 'Help & Support',
-            subtitle: 'Get help and contact support',
-            onTap: () {
-              // Navigate to help
-            },
-          ),
-          _buildDivider(),
-          _buildMenuItem(
-            icon: Icons.lock_outline,
-            title: 'Change Password',
-            subtitle: 'Update your account password',
-            onTap: () {
-              // Navigate to change password
-            },
+            isDestructive: true,
           ),
           _buildDivider(),
           _buildMenuItem(
@@ -334,7 +314,7 @@ class ProfileScreenPage extends GetView<ProfileScreenController> {
             title: 'Delete Account',
             subtitle: 'Permanently delete your account',
             onTap: () {
-              _showDeleteAccountDialog();
+showDeleteAccountDialog();
             },
             isDestructive: true,
           ),
@@ -343,6 +323,77 @@ class ProfileScreenPage extends GetView<ProfileScreenController> {
     );
   }
 
+   void showDeleteAccountDialog() {
+     Get.dialog(
+       AlertDialog(
+         title: const Text('Delete Account'),
+         content: const Text(
+           'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.',
+         ),
+         actions: [
+           TextButton(
+             onPressed: () => Get.back(),
+             child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+           ),
+           TextButton(
+             onPressed: () async {
+               Get.back(); // Close the dialog
+               try {
+                 final authController = Get.find<AuthController>();
+                 await authController.deleteAccount();
+                 Get.offAllNamed(Routes.LOGIN_SCREEN); // Navigate to login after deletion
+               } catch (e) {
+                 Get.snackbar(
+                   'Error',
+                   'Failed to delete account. Please try again.',
+                   snackPosition: SnackPosition.BOTTOM,
+                 );
+               }
+             },
+             child: const Text(
+               'Delete',
+               style: TextStyle(color: Colors.red),
+             ),
+           ),
+         ],
+         shape: RoundedRectangleBorder(
+           borderRadius: BorderRadius.circular(12),
+         ),
+       ),
+       barrierDismissible: true,
+     );
+   }
+
+   void _showLogoutDialog() {
+     Get.dialog(
+       AlertDialog(
+         title: const Text('Logout'),
+         content: const Text('Are you sure you want to logout?'),
+         actions: [
+           TextButton(
+             onPressed: () => Get.back(),
+             child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+           ),
+           TextButton(
+             onPressed: () {
+               Get.back(); // Close the dialog
+               // Call your logout function here
+               final authController = Get.find<AuthController>();
+               authController.logout();
+             },
+             child: const Text(
+               'Logout',
+               style: TextStyle(color: Colors.red),
+             ),
+           ),
+         ],
+         shape: RoundedRectangleBorder(
+           borderRadius: BorderRadius.circular(12),
+         ),
+       ),
+       barrierDismissible: true,
+     );
+   }
   /// Individual menu item
   Widget _buildMenuItem({
     required IconData icon,
@@ -402,87 +453,5 @@ class ProfileScreenPage extends GetView<ProfileScreenController> {
     );
   }
 
-  /// Delete account confirmation dialog
-  void _showDeleteAccountDialog() {
-    Get.dialog(
-      AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                Icons.delete_outline,
-                color: Colors.red,
-                size: 20,
-              ),
-            ),
-            SizedBox(width: 12),
-            Text(
-              'Delete Account',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-          ],
-        ),
-        content: Text(
-          'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey[700],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text(
-              'Cancel',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Get.back();
-              // Handle account deletion
-              Get.snackbar(
-                'Account Deleted',
-                'Your account has been successfully deleted.',
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Colors.red,
-                colorText: Colors.white,
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text(
-              'Delete',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 }

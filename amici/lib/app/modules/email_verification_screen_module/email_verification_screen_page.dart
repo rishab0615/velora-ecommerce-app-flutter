@@ -1,3 +1,4 @@
+import 'package:amici/app/theme/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -16,7 +17,7 @@ class EmailVerificationPage extends StatelessWidget {
         title: const Text("Verify Your Email"),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.deepPurple,
+        backgroundColor:blackColor,
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -38,7 +39,7 @@ class EmailVerificationPage extends StatelessWidget {
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.email, color: Colors.deepPurple, size: 80),
+                  const Icon(Icons.email, color: blackColor, size: 80),
                   const SizedBox(height: 20),
                   const Text(
                     "A verification email has been sent.\nPlease check your inbox.",
@@ -53,7 +54,7 @@ class EmailVerificationPage extends StatelessWidget {
                         ? controller.sendVerificationEmail
                         : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
+                      backgroundColor: blackColor,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 30, vertical: 12),

@@ -4,18 +4,26 @@ import 'package:get/get.dart';
 import '../../data/models/store_product_model.dart';
 import '../../data/models/category_model.dart';
 import '../../data/services/store_service.dart';
+import '../../routes/app_pages.dart';
 
 class StoreScreenController extends GetxController {
   // Observable variables for reactive UI
   final RxList<CategoryModel> categories = <CategoryModel>[].obs;
   final RxList<StoreProductModel> newArrivals = <StoreProductModel>[].obs;
   final RxList<StoreProductModel> saleProducts = <StoreProductModel>[].obs;
+  final RxList<StoreProductModel> preOrderProducts = <StoreProductModel>[].obs;
   final RxList<StoreProductModel> searchResults = <StoreProductModel>[].obs;
+  
+  // Pre-Order by upcoming months (dummy data)
+  final RxList<DateTime> upcomingMonths = <DateTime>[].obs; // e.g., next 3 months
+  final RxInt selectedPreOrderMonthIndex = 0.obs;
+  final RxMap<String, List<StoreProductModel>> preOrderByMonth = <String, List<StoreProductModel>>{}.obs; // key: yyyy-MM
   
   // Loading states
   final RxBool isLoadingCategories = false.obs;
   final RxBool isLoadingNewArrivals = false.obs;
   final RxBool isLoadingSaleProducts = false.obs;
+  final RxBool isLoadingPreOrders = false.obs;
   final RxBool isSearching = false.obs;
   
   // UI state
@@ -56,7 +64,9 @@ class StoreScreenController extends GetxController {
       loadCategories(),
       loadNewArrivals(),
       loadSaleProducts(),
+      loadPreOrderProducts(),
     ]);
+    _initUpcomingPreOrderDummy();
   }
 
   /// Load categories from the service
@@ -107,6 +117,84 @@ class StoreScreenController extends GetxController {
       );
     } finally {
       isLoadingSaleProducts.value = false;
+    }
+  }
+
+  /// Load pre-order products (based on preOrder flag)
+  Future<void> loadPreOrderProducts() async {
+    try {
+      isLoadingPreOrders.value = true;
+      final all = await StoreService.getProducts();
+      final preOrderItems = all.where((p) => p.isPreOrder).toList();
+      preOrderProducts.assignAll(preOrderItems);
+      print("There are ${preOrderItems.length} pre-order products");
+      for(final a in all){
+        print("This is a product ${a.isPreOrder}");
+      }
+      // Group pre-order items by their available month
+      _groupPreOrdersByMonth(preOrderItems);
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to load pre-order products: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoadingPreOrders.value = false;
+    }
+  }
+  
+  /// Group pre-order items by their available month
+  void _groupPreOrdersByMonth(List<StoreProductModel> items) {
+    preOrderByMonth.clear();
+    
+    // Get unique months from available dates
+    final months = items
+        .where((p) => p.availableDate != null)
+        .map((p) => DateTime(p.availableDate!.year, p.availableDate!.month))
+        .toSet()
+        .toList();
+    
+    // Sort months chronologically
+    months.sort((a, b) => a.compareTo(b));
+    
+    // Update upcoming months with real pre-order months
+    upcomingMonths.assignAll(months);
+    
+    // Group items by month
+    for (final item in items.where((p) => p.availableDate != null)) {
+      final monthKey = _monthKey(DateTime(item.availableDate!.year, item.availableDate!.month));
+      preOrderByMonth.putIfAbsent(monthKey, () => []).add(item);
+    }
+    
+    // Reset selected month index
+    selectedPreOrderMonthIndex.value = 0;
+  }
+
+  /// Initialize upcoming months for pre-order products
+  void _initUpcomingPreOrderDummy() {
+    _groupPreOrdersByMonth(preOrderProducts);
+  }
+
+  String _monthKey(DateTime dt) => '${dt.year.toString().padLeft(4, '0')}-${dt.month.toString().padLeft(2, '0')}';
+
+  String _monthName(DateTime dt) {
+    const names = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return names[dt.month - 1];
+  }
+
+  /// Exposed getter for currently selected month's pre-order items (dummy)
+  List<StoreProductModel> get currentMonthPreOrders {
+    if (upcomingMonths.isEmpty) return [];
+    final index = selectedPreOrderMonthIndex.value.clamp(0, upcomingMonths.length - 1);
+    final key = _monthKey(upcomingMonths[index]);
+    return preOrderByMonth[key] ?? [];
+  }
+
+  /// Switch selected month tab
+  void selectPreOrderMonth(int index) {
+    if (index >= 0 && index < upcomingMonths.length) {
+      selectedPreOrderMonthIndex.value = index;
     }
   }
 
@@ -200,7 +288,10 @@ class StoreScreenController extends GetxController {
 
   /// Navigate to category products
   void navigateToCategory(CategoryModel category) {
-    Get.toNamed('/category_products', arguments: category);
+    Get.toNamed(
+      Routes.CATEGORY,
+      arguments: {'category': category.name},
+    );
   }
 
   /// Toggle favorite status for a product
@@ -241,6 +332,12 @@ class StoreScreenController extends GetxController {
       saleProducts[saleProductIndex] = saleProducts[saleProductIndex].copyWith(isFavorite: isFavorite);
     }
 
+    // Update in pre-order products
+    final preOrderIndex = preOrderProducts.indexWhere((p) => p.id == productId);
+    if (preOrderIndex != -1) {
+      preOrderProducts[preOrderIndex] = preOrderProducts[preOrderIndex].copyWith(isFavorite: isFavorite);
+    }
+
     // Update in search results
     final searchResultIndex = searchResults.indexWhere((p) => p.id == productId);
     if (searchResultIndex != -1) {
@@ -257,5 +354,6 @@ class StoreScreenController extends GetxController {
   bool get isLoading => isLoadingCategories.value || 
                        isLoadingNewArrivals.value || 
                        isLoadingSaleProducts.value || 
+                       isLoadingPreOrders.value || 
                        isSearching.value;
 }

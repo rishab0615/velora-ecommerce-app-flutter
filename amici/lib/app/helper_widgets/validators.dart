@@ -1,13 +1,13 @@
 class Validators {
   String? validateFirstName(String? name) {
     if ((name ?? "").trim().isEmpty) {
-      return "First name can't be empty";
+      return "Name can't be empty";
     }
     if ((name ?? "").trim().length < 3) {
-      return "First name should have minimum 3 characters";
+      return "Name should have minimum 3 characters";
     }
     if ((name ?? "").trim().length > 30) {
-      return "First name should have maximum 30 characters";
+      return "Name should have maximum 30 characters";
     }
     return null;
   }
@@ -152,7 +152,7 @@ class Validators {
   }
 
 
-  String? validatePassword(String? value) {
+  String? validatePasswordStrong(String? value) {
     RegExp regex =
     RegExp(r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{6,}$');
     if (value!.isEmpty) {
@@ -164,6 +164,15 @@ class Validators {
         return null;
       }
     }
+  }
+  String? validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter password';
+    }
+    if (value.length < 6) {
+      return 'Password must be at least 6 characters long';
+    }
+    return null;
   }
   String? validateOldPassword(String? value) {
     RegExp regex =
@@ -179,7 +188,7 @@ class Validators {
     }
   }
 
-  String? validateChangePass(String? value) {
+  String? validateChangePassStrong(String? value) {
     RegExp regex =
     RegExp(r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{6,}$');
     if (value!.isEmpty) {
@@ -191,6 +200,16 @@ class Validators {
         return null;
       }
     }
+  }
+
+  String? validateChangePass(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter password';
+    }
+    if (value.length < 6) {
+      return 'Password must be at least 6 characters long';
+    }
+    return null;
   }
 
   String? validateLoginPass(String? password) {

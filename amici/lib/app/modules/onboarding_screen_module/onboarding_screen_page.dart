@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:sizer/sizer.dart';
 import '../../../api_collection/shared_prefrences.dart';
+import '../../data/services/storage_service.dart';
 import '../../helper_widgets/custom_circlular_indicator.dart';
 import '../../helper_widgets/text_widget.dart';
 import '../../routes/app_pages.dart';
@@ -11,6 +12,7 @@ import 'onboarding_screen_controller.dart';
 
 class OnboardingScreenPage extends GetView<OnboardingScreenController> {
   final OnboardingScreenController onboardingScreenController = Get.find<OnboardingScreenController>();
+  final StorageService storageService = StorageService();
 
   OnboardingScreenPage({super.key});
   @override
@@ -103,11 +105,12 @@ class OnboardingScreenPage extends GetView<OnboardingScreenController> {
                         }else if(onboardingScreenController.onboardList[2] == false && onboardingScreenController.onboardList[1] == true){
                           onboardingScreenController.onboardList[2] = true;
                           onboardingScreenController.percentValue = 1.0;
-                          Timer(Duration(milliseconds: 1200), () {
+                          Timer(Duration(milliseconds: 1200), () async {
+                            await storageService.setOnboardingStatus(true);
                             Get.offAllNamed(Routes.LOGIN_SCREEN);
                           });
                         }
-                        await PreferenceManager.get().setMainOnBoardValue(true);
+                        // await PreferenceManager.get().setMainOnBoardValue(true);
                         onboardingScreenController.update();
                       },
                       child: Container(
@@ -125,7 +128,8 @@ class OnboardingScreenPage extends GetView<OnboardingScreenController> {
                   SizedBox(height: 4.h),
                   GestureDetector(
                     onTap: ()async{
-                      await PreferenceManager.get().setMainOnBoardValue(true);
+                      await storageService.setOnboardingStatus(true);
+                      // await PreferenceManager.get().setMainOnBoardValue(true);
                       Get.offAllNamed(Routes.LOGIN_SCREEN);
                     },
                     child: TextWidget(

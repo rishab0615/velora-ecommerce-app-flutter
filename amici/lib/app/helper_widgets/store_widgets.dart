@@ -2,37 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../data/models/store_product_model.dart';
 import '../data/models/category_model.dart';
+import '../modules/wishlist_module/wishlist_controller.dart';
 
 /// Professional product card widget
 class ProductCard extends StatelessWidget {
   final StoreProductModel product;
   final VoidCallback? onTap;
-  final VoidCallback? onFavoriteToggle;
+
   final bool showFavoriteButton;
 
   const ProductCard({
     Key? key,
     required this.product,
     this.onTap,
-    this.onFavoriteToggle,
+
     this.showFavoriteButton = true,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<WishlistController>();
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 160,
-        height: 280, // Fixed height to prevent overflow
-        margin: EdgeInsets.only(right: 16),
+        width: 148,
+        height: 248, // Fixed height to prevent overflow
+        margin: EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
+              blurRadius: 8,
               offset: Offset(0, 4),
             ),
           ],
@@ -42,16 +44,16 @@ class ProductCard extends StatelessWidget {
           children: [
             // Product Image with badges
             Container(
-              height: 180, // Fixed height for image section
+              height: 156, // Fixed height for image section
               child: Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
                     child: Container(
                       width: double.infinity,
                       height: double.infinity,
                       child: Image.network(
-                        product.imageUrl,
+                        product.imageUrls[0],
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
@@ -66,28 +68,31 @@ class ProductCard extends StatelessWidget {
                 // Favorite button
                 if (showFavoriteButton)
                   Positioned(
-                    top: 8,
-                    right: 8,
+                    top: 6,
+                    right: 6,
                     child: GestureDetector(
-                      onTap: onFavoriteToggle,
+                      onTap:()=> controller.toggleWishlist(product),
                       child: Container(
-                        padding: EdgeInsets.all(6),
+                        padding: EdgeInsets.all(5),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.1),
-                              blurRadius: 4,
+                              blurRadius: 3,
                               offset: Offset(0, 2),
                             ),
                           ],
                         ),
-                        child: Icon(
-                          product.isFavorite ? Icons.favorite : Icons.favorite_border,
-                          size: 18,
-                          color: product.isFavorite ? Colors.red : Colors.grey[600],
-                        ),
+                        child: Obx(() {
+                          final isFavorite = controller.wishlistItems.any((item) => item.id == product.id);
+                          return Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            size: 16,
+                            color: isFavorite ? Colors.red : Colors.grey[600],
+                          );
+                        }),
                       ),
                     ),
                   ),
@@ -96,7 +101,7 @@ class ProductCard extends StatelessWidget {
                 if (product.isNew)
                   Positioned(
                     top: 8,
-                    left: 8,
+                    left: 5,
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
@@ -106,7 +111,30 @@ class ProductCard extends StatelessWidget {
                       child: Text(
                         'NEW',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // Pre-Order badge
+                if (product.isPreOrder)
+                  Positioned(
+                    top: 8,
+                    left: product.isNew ? 45 : 5,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.deepOrange.withValues(alpha: 0.5,blue:0,red: 0,green: 0 ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'PRE-ORDER',
+                        style: TextStyle(
+                          fontSize: 8,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                           letterSpacing: 0.5,
@@ -142,7 +170,7 @@ class ProductCard extends StatelessWidget {
             // Product Info
             Expanded(
               child: Padding(
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.all(10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -150,38 +178,17 @@ class ProductCard extends StatelessWidget {
                     Text(
                       product.name,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: Colors.black87,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    
-                    SizedBox(height: 4),
+
                     
                     // Rating
-                    Row(
-                      children: [
-                        Icon(Icons.star, size: 12, color: Colors.amber),
-                        SizedBox(width: 2),
-                        Text(
-                          product.rating.toString(),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          '(${product.reviewCount})',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
-                    ),
+
                     
                     Spacer(),
                     
@@ -189,9 +196,9 @@ class ProductCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          '\$${product.price.toStringAsFixed(2)}',
+                          '\$${product.offerPrice.toStringAsFixed(2)}',
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: Colors.black,
                           ),
@@ -199,9 +206,9 @@ class ProductCard extends StatelessWidget {
                         if (product.hasDiscount) ...[
                           SizedBox(width: 6),
                           Text(
-                            '\$${product.originalPrice.toStringAsFixed(2)}',
+                            '\$${product.price.toStringAsFixed(2)}',
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 10,
                               color: Colors.grey[500],
                               decoration: TextDecoration.lineThrough,
                             ),
@@ -236,14 +243,14 @@ class CategoryTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 200, // Fixed height to prevent overflow
+        height: 180, // Fixed height to prevent overflow
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
+              blurRadius: 8,
               offset: Offset(0, 4),
             ),
           ],
@@ -252,9 +259,9 @@ class CategoryTile extends StatelessWidget {
           children: [
             // Category Image
             Container(
-              height: 140, // Fixed height for image section
+              height: 124, // Fixed height for image section
               child: ClipRRect(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -288,14 +295,14 @@ class CategoryTile extends StatelessWidget {
             // Category Info
             Expanded(
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       category.name.toUpperCase(),
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
                         letterSpacing: 0.8,
@@ -309,7 +316,7 @@ class CategoryTile extends StatelessWidget {
                       Text(
                         '${category.productCount} items',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 9,
                           color: Colors.grey[600],
                         ),
                       ),
@@ -344,11 +351,11 @@ class StoreLoadingIndicator extends StatelessWidget {
             valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
           ),
           if (message != null) ...[
-            SizedBox(height: 16),
+            SizedBox(height: 12),
             Text(
               message!,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 color: Colors.grey[600],
               ),
             ),
@@ -380,20 +387,20 @@ class EmptyStateWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(32),
+        padding: EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
-              size: 64,
+              size: 52,
               color: Colors.grey[400],
             ),
             SizedBox(height: 16),
             Text(
               title,
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
@@ -403,19 +410,19 @@ class EmptyStateWidget extends StatelessWidget {
             Text(
               message,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 color: Colors.grey[600],
               ),
               textAlign: TextAlign.center,
             ),
             if (onActionPressed != null && actionText != null) ...[
-              SizedBox(height: 24),
+              SizedBox(height: 16),
               ElevatedButton(
                 onPressed: onActionPressed,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
                   foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -448,14 +455,14 @@ class StoreSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            blurRadius: 8,
             offset: Offset(0, 4),
           ),
         ],
@@ -473,10 +480,11 @@ class StoreSearchBar extends StatelessWidget {
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         ),
         onSubmitted: (_) => onSearch?.call(),
       ),
     );
   }
-} 
+}
+ 

@@ -4,6 +4,7 @@ import 'package:country_list_pick/support/code_country.dart';
 import '../../data/global_controllers/auth_controller.dart';
 
 class SignUpScreenController extends GetxController {
+  final authController = Get.find<AuthController>();
   TextEditingController companyNameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
@@ -25,18 +26,13 @@ class SignUpScreenController extends GetxController {
 
   /// Called when user presses SignUp button
   Future<void> handleSignUp() async {
-    if (passwordController.text.trim() != confirmPassController.text.trim()) {
-      Get.snackbar("Error", "Passwords do not match");
-      return;
-    }
-
     isLoading.value = true;
 
-    final authController = Get.find<AuthController>();
-    await authController.register(
+   await authController.register(
       emailController.text.trim(),
       passwordController.text.trim(),
       companyNameController.text.trim(),
+      phoneController.text.trim()
     );
 
     isLoading.value = false;

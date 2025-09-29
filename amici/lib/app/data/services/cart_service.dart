@@ -1,152 +1,191 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:get/get.dart';
 import '../models/cart_item_model.dart';
 import '../models/store_product_model.dart';
 
-class CartService {
-  static final List<CartItemModel> _cartItems = [
-    // Demo cart items for testing
-    CartItemModel(
-      id: '1',
-      product: StoreProductModel(
-        id: '1',
-        name: 'Oggi Stretch Pant',
-        description: 'Premium Italian stretch pants with exceptional comfort and style',
-        imageUrl: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&h=500&fit=crop',
-        price: 126.00,
-        rating: 4.5,
-        reviewCount: 128,
-        isNew: true,
-        categories: ['Bottoms'],
-        sizes: ['XS', 'S', 'M', 'L', 'XL'],
-        colors: ['Black', 'Navy', 'Gray'],
-        stockQuantity: 15,
-      ),
-      quantity: 2,
-      selectedSize: 'M',
-      selectedColor: 'Black',
-      addedAt: DateTime.now().subtract(Duration(days: 1)),
-    ),
-    CartItemModel(
-      id: '2',
-      product: StoreProductModel(
-        id: '2',
-        name: 'Lepore Bomber',
-        description: 'Italian designer bomber jacket with premium quality',
-        imageUrl: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=500&fit=crop',
-        price: 174.00,
-        originalPrice: 220.00,
-        rating: 4.2,
-        reviewCount: 89,
-        isNew: true,
-        isOnSale: true,
-        categories: ['Tops & Jackets'],
-        sizes: ['S', 'M', 'L', 'XL'],
-        colors: ['Black', 'Navy'],
-        stockQuantity: 25,
-      ),
-      quantity: 1,
-      selectedSize: 'L',
-      selectedColor: 'Navy',
-      addedAt: DateTime.now().subtract(Duration(hours: 3)),
-    ),
-  ];
+class CartService extends GetxService {
+  static CartService get to => Get.find();
 
-  // Get all cart items
-  static List<CartItemModel> getCartItems() {
-    return _cartItems;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  CollectionReference<Map<String, dynamic>> get _cartCollection =>
+      _firestore.collection('users').doc(_auth.currentUser?.uid).collection('cart');
+
+  /// Get all cart items as a stream
+  /// Get all cart items as a stream
+  Stream<List<CartItemModel>> getCartItemsStream() {
+    final userId = _auth.currentUser?.uid;
+    print('🛒 getCartItemsStream called for user: $userId');
+
+    if (userId == null) {
+      print('❌ No user is currently signed in');
+      return Stream.value([]); // Return empty stream if no user is signed in
+    }
+
+    return _cartCollection.snapshots().asyncMap((snapshot) async {
+      print('📦 Fetched ${snapshot.docs.length} cart items from Firestore');
+      final items = <CartItemModel>[];
+
+      for (var doc in snapshot.docs) {
+        try {
+          final data = doc.data();
+          print('🔄 Processing cart item: ${doc.id}');
+
+          final productRef = data['product'] as DocumentReference?;
+          if (productRef == null) {
+            print('⚠️ Product reference is null for cart item: ${doc.id}');
+            continue;
+          }
+
+          final productDoc = await productRef.get();
+          if (!productDoc.exists) {
+            print('⚠️ Product document does not exist: ${productRef.path}');
+            continue;
+          }
+
+          final productData = productDoc.data() as Map<String, dynamic>?;
+          if (productData == null) {
+            print('⚠️ Product data is null for document: ${productDoc.reference.path}');
+            continue;
+          }
+
+          final product = StoreProductModel.fromJson({
+            'id': productDoc.id,
+            ...productData,
+          });
+
+          final item = CartItemModel(
+            id: doc.id,
+            product: product,
+            quantity: data['quantity'] as int? ?? 1,
+            selectedSize: data['selectedSize'] as String? ?? '',
+          );
+
+          items.add(item);
+          print('✅ Successfully added item: ${product.name} (${doc.id})');
+        } catch (e) {
+          print('❌ Error parsing cart item ${doc.id}: $e');
+          print('Stack trace: ${StackTrace.current}');
+        }
+      }
+
+      print('🛍️  Returning ${items.length} valid cart items');
+      return items;
+    }).handleError((error) {
+      print('🔥 Error in cart stream: $error');
+      print('Stack trace: ${StackTrace.current}');
+      return <CartItemModel>[]; // Return empty list on error
+    });
   }
+  /// Add item to cart or update quantity if exists
+  Future<void> addToCart(CartItemModel item) async {
+    try {
+      final docRef = _cartCollection.doc(item.id);
+      final doc = await docRef.get();
 
-  // Add item to cart
-  static void addToCart(StoreProductModel product, {
-    required String size,
-    required String color,
-    int quantity = 1,
-  }) {
-    // Check if item already exists with same size and color
-    final existingIndex = _cartItems.indexWhere((item) => 
-      item.product.id == product.id && 
-      item.selectedSize == size && 
-      item.selectedColor == color
-    );
-
-    if (existingIndex != -1) {
-      // Update quantity of existing item
-      final existingItem = _cartItems[existingIndex];
-      _cartItems[existingIndex] = existingItem.copyWith(
-        quantity: existingItem.quantity + quantity,
-      );
-    } else {
-      // Add new item
-      final newItem = CartItemModel(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        product: product,
-        quantity: quantity,
-        selectedSize: size,
-        selectedColor: color,
-        addedAt: DateTime.now(),
-      );
-      _cartItems.add(newItem);
+      if (doc.exists) {
+        // Update quantity if item exists
+        await docRef.update({
+          'quantity': FieldValue.increment(item.quantity),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      } else {
+        // Add new item
+        await docRef.set({
+          'product': _firestore.doc('products/${item.product.id}'),
+          'quantity': item.quantity,
+          'selectedSize': item.selectedSize,
+          'addedAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to add item to cart');
+      rethrow;
     }
   }
 
-  // Remove item from cart
-  static void removeFromCart(String itemId) {
-    _cartItems.removeWhere((item) => item.id == itemId);
-  }
-
-  // Update item quantity
-  static void updateQuantity(String itemId, int newQuantity) {
-    final index = _cartItems.indexWhere((item) => item.id == itemId);
-    if (index != -1 && newQuantity > 0) {
-      final item = _cartItems[index];
-      _cartItems[index] = item.copyWith(quantity: newQuantity);
-    } else if (index != -1 && newQuantity <= 0) {
-      removeFromCart(itemId);
+  /// Update item quantity
+  Future<void> updateQuantity(String itemId, int newQuantity) async {
+    try {
+      if (newQuantity <= 0) {
+        // Remove item if quantity is 0 or negative
+        await _cartCollection.doc(itemId).delete();
+      } else {
+        // Update quantity
+        await _cartCollection.doc(itemId).update({
+          'quantity': newQuantity,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to update item quantity');
+      rethrow;
     }
   }
 
-  // Clear cart
-  static void clearCart() {
-    _cartItems.clear();
+  /// Remove item from cart
+  Future<void> removeFromCart(String itemId) async {
+    try {
+      await _cartCollection.doc(itemId).delete();
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to remove item from cart');
+      rethrow;
+    }
   }
 
-  // Get cart total
-  static double getCartTotal() {
-    return _cartItems.fold(0.0, (total, item) => total + item.totalPrice);
+  /// Clear all items from cart
+  Future<void> clearCart() async {
+    try {
+      final batch = _firestore.batch();
+      final snapshot = await _cartCollection.get();
+
+      for (var doc in snapshot.docs) {
+        batch.delete(doc.reference);
+      }
+
+      await batch.commit();
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to clear cart');
+      rethrow;
+    }
   }
 
-  // Get cart total with original prices
-  static double getCartOriginalTotal() {
-    return _cartItems.fold(0.0, (total, item) => total + item.totalOriginalPrice);
+  /// Get total number of items in cart
+  Future<int> getItemCount() async {
+    try {
+      final snapshot = await _cartCollection.get();
+      return snapshot.docs.fold<int>(0, (sum, doc) => sum + (doc.data()['quantity'] as int? ?? 0));
+    } catch (e) {
+      return 0;
+    }
   }
 
-  // Get total savings
-  static double getTotalSavings() {
-    return getCartOriginalTotal() - getCartTotal();
-  }
+  /// Get total cart value
+  Future<double> getCartTotal() async {
+    try {
+      final snapshot = await _cartCollection.get();
+      double total = 0.0;
 
-  // Get cart item count
-  static int getCartItemCount() {
-    return _cartItems.fold(0, (count, item) => count + item.quantity);
-  }
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        try {
+          final productDoc = await (data['product'] as DocumentReference).get();
+          final productData = productDoc.data() as Map<String, dynamic>?;
+          final price = (productData?['offerPrice'] ?? 0.0).toDouble();
+          final quantity = (data['quantity'] as int?) ?? 0;
+          total += price * quantity;
+        } catch (e) {
+          print('Error calculating price for item ${doc.id}: $e');
+        }
+      }
 
-  // Check if cart is empty
-  static bool isCartEmpty() {
-    return _cartItems.isEmpty;
+      return total;
+    } catch (e) {
+      print('Error getting cart total: $e');
+      return 0.0;
+    }
   }
-
-  // Get shipping cost
-  static double getShippingCost() {
-    final total = getCartTotal();
-    return total >= 100 ? 0.0 : 15.0; // Free shipping over $100
-  }
-
-  // Get final total with shipping
-  static double getFinalTotal() {
-    return getCartTotal() + getShippingCost();
-  }
-
-  // Check if free shipping applies
-  static bool hasFreeShipping() {
-    return getCartTotal() >= 100;
-  }
-} 
+}

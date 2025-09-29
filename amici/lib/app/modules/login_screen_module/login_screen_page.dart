@@ -41,7 +41,7 @@ class LoginScreenPage extends GetView<LoginScreenController> {
                     height: 30.h,
                     width: double.maxFinite,
                     decoration:  BoxDecoration(
-                        color: Colors.black.withOpacity(0.10),
+                        color: Colors.black.withValues(red: 0,blue:0,green:0,alpha: 0.1),
                         image: DecorationImage(image: AssetImage("assets/images/Amici-Fashion.png"), fit: BoxFit.contain)
                     ),
                   ),
@@ -136,7 +136,7 @@ class LoginScreenPage extends GetView<LoginScreenController> {
                         ),
                         GestureDetector(
                           onTap: (){
-                            // Get.toNamed(Routes.FORGOT_PASSWORD_SCREEN);
+                            Get.toNamed(Routes.FORGOT_PASSWORD);
                           },
                           child: Text("Forgot password?",
                               textAlign: TextAlign.end,

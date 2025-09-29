@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:sizer/sizer.dart';
+import '../../data/global_controllers/auth_controller.dart';
 import '../../helper_widgets/custom_nav_bar.dart';
 import '../../helper_widgets/hex_color.dart';
 import '../../helper_widgets/text_widget.dart';
@@ -10,6 +11,7 @@ import 'home_screen_controller.dart';
 
 class HomeScreenPage extends GetView<HomeScreenController> {
   final HomeScreenController homeScreenController = Get.find<HomeScreenController>();
+  final AuthController authController = Get.find<AuthController>();
 
   HomeScreenPage({super.key});
 
@@ -36,7 +38,7 @@ class HomeScreenPage extends GetView<HomeScreenController> {
                     TextWidget(text: "Hello,", size: 10.sp, bold: FontWeight.w400,color: HexColor("#575757"),),
                     Padding(
                       padding: EdgeInsets.only(top: 1.6.h),
-                      child: TextWidget(text: "Trish",overflow: TextOverflow.ellipsis, size: 20.sp, bold: FontWeight.w600,color: Colors.black,),
+                      child: Obx(()=> TextWidget(text: authController.user.value?.name ?? "",overflow: TextOverflow.ellipsis, size: 20.sp, bold: FontWeight.w600,color: Colors.black,)),
                     ),
                   ],
                 ),

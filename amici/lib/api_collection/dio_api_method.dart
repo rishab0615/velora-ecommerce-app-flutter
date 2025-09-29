@@ -100,10 +100,11 @@ class DioClient {
   toAst(String message) {
     Fluttertoast.showToast(
         msg: message,
-        toastLength: Toast.LENGTH_SHORT,
+        toastLength: Toast.LENGTH_LONG,
         gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.black12,
         textColor: Colors.black,
+
         fontSize: 12.sp);
   }
 }

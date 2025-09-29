@@ -1,35 +1,43 @@
 import 'dart:async';
 
 import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-import '../../../api_collection/shared_prefrences.dart';
+import '../../data/services/storage_service.dart';
 import '../../routes/app_pages.dart';
 /**
  * GetX Template Generator - fb.com/htngu.99
  * */
 
 class SplashScreenController extends GetxController{
+  final StorageService storageService = StorageService();
 
   @override
   void onInit() async{
-    var pref = await PreferenceManager.get().getAccessToken();
-    var isAppAlreadyInstalled = await PreferenceManager.get().getMainOnBoardValue();
-    print("token---->${await PreferenceManager.get().getAccessToken()}");
-    Timer(const Duration(seconds: 3), () {
-    if(pref != null){
-      Get.offAllNamed(Routes.HOME_SCREEN);
-    }
-    else if(pref == null && isAppAlreadyInstalled != null){
-    Get.offAllNamed(Routes.LOGIN_SCREEN);
-    }
-    else if(pref == null && isAppAlreadyInstalled == null){
-    Get.offNamed(Routes.ONBOARDING_SCREEN);
-    }
-    else{
-    Get.offAllNamed(Routes.ONBOARDING_SCREEN);
-    }
-    });
     super.onInit();
+    final bool hasSeenOnboarding = await storageService.hasSeenOnboarding();
+
+    // Small splash delay for UX
+    Timer(const Duration(seconds: 2), () async {
+      final User? currentUser = FirebaseAuth.instance.currentUser;
+
+      if (!hasSeenOnboarding) {
+        Get.offAllNamed(Routes.ONBOARDING_SCREEN);
+        return;
+      }
+
+      // If user is already authenticated (Firebase persists sessions), keep them logged in
+      if (currentUser != null) {
+        if (currentUser.emailVerified) {
+          Get.offAllNamed(Routes.HOME_SCREEN);
+        } else {
+          Get.offAllNamed(Routes.EMAIL_VERIFICATION_SCREEN);
+        }
+      } else {
+        // Not authenticated yet
+        Get.offAllNamed(Routes.LOGIN_SCREEN);
+      }
+    });
   }
 
 }
