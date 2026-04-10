@@ -1,40 +1,51 @@
+
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:country_list_pick/support/code_country.dart';
-import '../../data/global_controllers/auth_controller.dart';
+import 'package:country_picker/country_picker.dart';
+
+import '../../data/repositories/auth_repository.dart';
 
 class SignUpScreenController extends GetxController {
-  final authController = Get.find<AuthController>();
+  final AuthRepository _repo = AuthRepository();
+
   TextEditingController companyNameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPassController = TextEditingController();
 
-  String selectedCountryCode = '';
-  CountryCode selectedCountry = CountryCode(dialCode: "+234");
+  Country selectedCountry = Country.parse('IN');
+
+  String get selectedCountryCode => "+${selectedCountry.phoneCode}";
+
   bool checkBoxValue = false;
 
   RxBool isObscure = true.obs;
   RxBool isComfirmPassObscure = true.obs;
   RxBool isLoading = false.obs;
 
-  void onCountryChange(CountryCode? countryCode) {
-    selectedCountry = countryCode!;
+  void updateCountry(Country country) {
+    selectedCountry = country;
     update();
   }
 
-  /// Called when user presses SignUp button
   Future<void> handleSignUp() async {
-    isLoading.value = true;
+    try {
+      isLoading.value = true;
 
-   await authController.register(
-      emailController.text.trim(),
-      passwordController.text.trim(),
-      companyNameController.text.trim(),
-      phoneController.text.trim()
-    );
+      await _repo.register(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+        name: companyNameController.text.trim(),
+        phone: "$selectedCountryCode${phoneController.text.trim()}",
+      );
 
-    isLoading.value = false;
+      Get.snackbar("Success", "Account created");
+
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    } finally {
+      isLoading.value = false;
+    }
   }
 }
