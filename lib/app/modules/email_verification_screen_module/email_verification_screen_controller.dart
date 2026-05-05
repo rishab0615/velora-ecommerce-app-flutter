@@ -16,7 +16,9 @@ class EmailVerificationController extends GetxController {
     isEmailVerified.value = FirebaseAuth.instance.currentUser!.emailVerified;
 
     if (!isEmailVerified.value) {
-      // sendVerificationEmail();
+      Future.delayed(const Duration(seconds: 5), () {
+        canResendEmail.value = true;
+      });
 
       // Check every 3 seconds if email is verified
       timer = Timer.periodic(const Duration(seconds: 3), (_) async {

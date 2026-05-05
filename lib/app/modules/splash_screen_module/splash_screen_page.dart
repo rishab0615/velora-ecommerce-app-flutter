@@ -21,7 +21,7 @@ class SplashScreenPage extends GetView<SplashScreenController> {
             body: Container(
               alignment: Alignment.center,
               padding: EdgeInsets.all(10.h),
-              child: Image(image: AssetImage("assets/images/amici_logo.jpg")),
+              child: Image(image: AssetImage("assets/images/velora.png")),
             )
         );
       },

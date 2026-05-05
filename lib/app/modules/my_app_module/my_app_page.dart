@@ -13,7 +13,7 @@ class MyAppPage extends GetView<MyAppController> {
     return Sizer(
         builder:(context, orientation, deviceType){
           return  GetMaterialApp(
-            title: "Amici | Made In Italy",
+            title: "Velora | Made In India",
             theme: appThemeData,
             initialBinding: BindingsBuilder(() {
             }),

@@ -40,9 +40,6 @@ dependencies:
   cloud_firestore: ^6.0.0
   shared_preferences: ^2.5.3
   carousel_slider: ^5.1.1
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
   get: ^4.6.6
   sizer: ^2.0.13
   flutter_svg: ^1.1.5
@@ -51,6 +48,10 @@ dev_dependencies:
   dio: ^4.0.6
   fluttertoast: ^8.2.1
   shimmer: ^2.0.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

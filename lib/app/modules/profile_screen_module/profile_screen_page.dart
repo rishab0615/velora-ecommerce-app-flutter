@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:amici/app/modules/profile_screen_module/profile_screen_controller.dart';
 
-import '../../data/global_controllers/auth_controller.dart';
+import '../../data/controllers/auth_controller.dart';
 import '../../routes/app_pages.dart';
 import '../wishlist_module/wishlist_controller.dart';
 
@@ -102,7 +102,7 @@ final wController=Get.find<WishlistController>();
           
           // User Info
           Text(
-            authController.user.value!.name,
+                                                                                                                                                                                                                                                                                    authController.displayName,
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -113,7 +113,7 @@ final wController=Get.find<WishlistController>();
           SizedBox(height: 8),
           
           Text(
-            authController.user.value!.email,
+            authController.email,
             style: TextStyle(
               fontSize: 16,
               color: Colors.grey[600],
@@ -123,7 +123,7 @@ final wController=Get.find<WishlistController>();
           SizedBox(height: 4),
           
           Text(
-            authController.user.value!.phoneNumber,
+            authController.user?.phoneNumber ?? 'No phone number',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[500],

@@ -1,51 +1,109 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:country_picker/country_picker.dart';
 
-import '../../data/repositories/auth_repository.dart';
+import '../../../api_collection/dio_api_method.dart';
+import '../../data/controllers/auth_controller.dart';
+import '../../helper_widgets/validators.dart';
+import '../../routes/app_pages.dart';
 
 class SignUpScreenController extends GetxController {
-  final AuthRepository _repo = AuthRepository();
+  final AuthController _authController = AuthController.instance;
+  final AppValidators _validators = AppValidators();
 
-  TextEditingController companyNameController = TextEditingController();
-  TextEditingController emailController = TextEditingController();
-  TextEditingController phoneController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
-  TextEditingController confirmPassController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
 
-  Country selectedCountry = Country.parse('IN');
+  final RxString usernameError = ''.obs;
+  final RxString emailError = ''.obs;
+  final RxString passwordError = ''.obs;
+  final RxString confirmPasswordError = ''.obs;
+  final RxBool isTermsAccepted = false.obs;
+  final RxBool isPasswordObscure = true.obs;
+  final RxBool isConfirmPasswordObscure = true.obs;
+  RxBool get isLoading => _authController.isRegistering;
 
-  String get selectedCountryCode => "+${selectedCountry.phoneCode}";
+  bool get isValid =>
+      usernameError.value.isEmpty &&
+      emailError.value.isEmpty &&
+      passwordError.value.isEmpty &&
+      confirmPasswordError.value.isEmpty;
 
-  bool checkBoxValue = false;
-
-  RxBool isObscure = true.obs;
-  RxBool isComfirmPassObscure = true.obs;
-  RxBool isLoading = false.obs;
-
-  void updateCountry(Country country) {
-    selectedCountry = country;
-    update();
+  void onEmailChanged(String value) {
+    emailController.value = TextEditingValue(
+      text: value.toLowerCase(),
+      selection: emailController.selection,
+    );
+    validateForm();
   }
 
-  Future<void> handleSignUp() async {
-    try {
-      isLoading.value = true;
+  void togglePasswordVisibility() {
+    isPasswordObscure.value = !isPasswordObscure.value;
+  }
 
-      await _repo.register(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-        name: companyNameController.text.trim(),
-        phone: "$selectedCountryCode${phoneController.text.trim()}",
-      );
+  void toggleConfirmPasswordVisibility() {
+    isConfirmPasswordObscure.value = !isConfirmPasswordObscure.value;
+  }
 
-      Get.snackbar("Success", "Account created");
+  void setTermsAccepted(bool? value) {
+    isTermsAccepted.value = value ?? false;
+  }
 
-    } catch (e) {
-      Get.snackbar("Error", e.toString());
-    } finally {
-      isLoading.value = false;
+  void validateForm() {
+    usernameError.value =
+        _validators.validateUsername(usernameController.text) ?? '';
+    emailError.value = _validators.validateEmail(emailController.text) ?? '';
+    passwordError.value =
+        _validators.validatePassword(passwordController.text) ?? '';
+    confirmPasswordError.value = _validators.validateConfirmPassword(
+          passwordController.text,
+          confirmPasswordController.text,
+        ) ??
+        '';
+  }
+
+  void goToLogin() {
+    Get.offAllNamed(Routes.LOGIN_SCREEN);
+  }
+
+  Future<void> submitSignUp() async {
+    validateForm();
+    if (!isValid) {
+      DioClient.get().toAst(_firstValidationError());
+      return;
     }
+
+    if (!isTermsAccepted.value) {
+      DioClient.get().toAst(
+        "Please accept Terms & Conditions and Privacy Policies",
+      );
+      return;
+    }
+
+    await _authController.register(
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
+      name: usernameController.text.trim(),
+    );
+  }
+
+  String _firstValidationError() {
+    return [
+      usernameError.value,
+      emailError.value,
+      passwordError.value,
+      confirmPasswordError.value,
+    ].firstWhere((error) => error.isNotEmpty);
+  }
+
+  @override
+  void onClose() {
+    usernameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.onClose();
   }
 }

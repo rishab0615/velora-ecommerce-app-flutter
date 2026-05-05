@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:sizer/sizer.dart';
-import '../../data/global_controllers/auth_controller.dart';
+import '../../data/controllers/auth_controller.dart';
 import '../../helper_widgets/custom_nav_bar.dart';
 import '../../helper_widgets/hex_color.dart';
 import '../../helper_widgets/text_widget.dart';
@@ -38,7 +38,7 @@ class HomeScreenPage extends GetView<HomeScreenController> {
                     TextWidget(text: "Hello,", size: 10.sp, bold: FontWeight.w400,color: HexColor("#575757"),),
                     Padding(
                       padding: EdgeInsets.only(top: 1.6.h),
-                      child: Obx(()=> TextWidget(text: authController.user.value?.name ?? "",overflow: TextOverflow.ellipsis, size: 20.sp, bold: FontWeight.w600,color: Colors.black,)),
+                      child: Obx(()=> TextWidget(text: authController.displayName,overflow: TextOverflow.ellipsis, size: 20.sp, bold: FontWeight.w600,color: Colors.black,)),
                     ),
                   ],
                 ),
@@ -47,7 +47,7 @@ class HomeScreenPage extends GetView<HomeScreenController> {
                 Container(
                     width: 34.w,
                     padding: EdgeInsets.only(right: 4.w, top: 1.6.h),
-                    child: Image.asset("assets/images/amici_logo.jpg")),
+                    child: Image.asset("assets/images/velora.png")),
               ],
             ),
             bottomNavigationBar: SafeArea(

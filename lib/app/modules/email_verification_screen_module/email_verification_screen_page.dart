@@ -2,6 +2,8 @@ import 'package:amici/app/theme/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../../routes/app_pages.dart';
 import 'email_verification_screen_controller.dart';
 
 class EmailVerificationPage extends StatelessWidget {
@@ -17,7 +19,7 @@ class EmailVerificationPage extends StatelessWidget {
         title: const Text("Verify Your Email"),
         centerTitle: true,
         elevation: 0,
-        backgroundColor:blackColor,
+        backgroundColor: blackColor,
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -48,26 +50,26 @@ class EmailVerificationPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 30),
                   Obx(() => ElevatedButton.icon(
-                    icon: const Icon(Icons.refresh),
-                    label: const Text("Resend Email"),
-                    onPressed: controller.canResendEmail.value
-                        ? controller.sendVerificationEmail
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: blackColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 30, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  )),
+                        icon: const Icon(Icons.refresh),
+                        label: const Text("Resend Email"),
+                        onPressed: controller.canResendEmail.value
+                            ? controller.sendVerificationEmail
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: blackColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 30, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      )),
                   const SizedBox(height: 15),
                   TextButton(
                     onPressed: () async {
                       await FirebaseAuth.instance.signOut();
-                      Get.offAllNamed("/login"); // back to login
+                      Get.offAllNamed(Routes.LOGIN_SCREEN); // back to login
                     },
                     child: const Text(
                       "Cancel",

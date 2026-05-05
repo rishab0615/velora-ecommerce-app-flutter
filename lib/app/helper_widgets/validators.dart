@@ -1,3 +1,50 @@
+import 'package:get/get.dart';
+
+class AppValidators {
+  String? validateEmail(String email) {
+    final value = email.trim();
+
+    if (value.isEmpty) {
+      return 'Email cannot be empty';
+    }
+    if (!GetUtils.isEmail(value)) {
+      return 'Enter a valid email';
+    }
+    return null;
+  }
+
+  String? validatePassword(String password) {
+    final value = password.trim();
+
+    if (value.isEmpty) {
+      return 'Password cannot be empty';
+    }
+    if (value.length < 6) {
+      return 'Password must be at least 6 characters long';
+    }
+    return null;
+  }
+
+  String? validateUsername(String username) {
+    final value = username.trim();
+
+    if (value.isEmpty) {
+      return 'Username cannot be empty';
+    }
+    if (value.length < 3) {
+      return 'Username must be at least 3 characters long';
+    }
+    return null;
+  }
+
+  String? validateConfirmPassword(String password, String confirmPassword) {
+    if (confirmPassword.trim() != password.trim()) {
+      return "Confirm password doesn't match";
+    }
+    return null;
+  }
+}
+
 class Validators {
   String? validateFirstName(String? name) {
     if ((name ?? "").trim().isEmpty) {
