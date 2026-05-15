@@ -10,13 +10,8 @@ import '../../app/modules/category_module/category_page.dart';
 import '../../app/modules/category_module/category_bindings.dart';
 import '../../app/modules/forgot_password_module/forgot_password_page.dart';
 import '../../app/modules/forgot_password_module/forgot_password_bindings.dart';
-import '../../app/modules/email_verification_screen_module/email_verification_screen_page.dart';
-import '../../app/modules/email_verification_screen_module/email_verification_screen_bindings.dart';
-import '../../app/modules/email_verification_screen_module/email_verification_screen_page.dart';
-import '../../app/modules/email_verification_screen_module/email_verification_screen_bindings.dart';
 import '../../app/modules/product_detail_module/product_detail_page.dart';
 import '../../app/modules/product_detail_module/product_detail_bindings.dart';
-import '../../app/data/models/store_product_model.dart';
 import '../../app/modules/profile_screen_module/profile_screen_page.dart';
 import '../../app/modules/profile_screen_module/profile_screen_bindings.dart';
 import '../../app/modules/my_cart_module/my_cart_page.dart';
@@ -90,13 +85,8 @@ abstract class AppPages {
     ),
     GetPage(
       name: Routes.PRODUCT_DETAIL,
-      page: () => ProductDetailPage(product: Get.arguments ),
+      page: () => ProductDetailPage(product: Get.arguments),
       binding: ProductDetailBinding(),
-    ),
-    GetPage(
-      name: Routes.EMAIL_VERIFICATION_SCREEN,
-      page: () => EmailVerificationPage(),
-      binding: EmailVerificationScreenBinding(),
     ),
     GetPage(
       name: Routes.FORGOT_PASSWORD,
@@ -105,7 +95,8 @@ abstract class AppPages {
     ),
     GetPage(
       name: Routes.CATEGORY,
-      page: () => CategoryPage(categoryName: Get.arguments['category'] ?? 'Category'),
+      page: () =>
+          CategoryPage(categoryName: Get.arguments['category'] ?? 'Category'),
       binding: CategoryBinding(),
     ),
     GetPage(
@@ -113,11 +104,12 @@ abstract class AppPages {
       page: () => WishlistPage(),
       binding: WishlistBinding(),
     ),
-  GetPage(
-  name: Routes.VIEW_ALL,
-  page: () => ViewAllPage(title: Get.arguments?['title'], products: Get.arguments['products']),
-  binding: ViewAllBinding(),
-  ),
+    GetPage(
+      name: Routes.VIEW_ALL,
+      page: () => ViewAllPage(
+          title: Get.arguments?['title'], products: Get.arguments['products']),
+      binding: ViewAllBinding(),
+    ),
     GetPage(
       name: Routes.CHECKOUT_PAGE,
       page: () => CheckoutPage(),

@@ -2,10 +2,13 @@ import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:amici/app/data/models/store_product_model.dart';
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import '../../data/services/store_service.dart';
 
 class WishlistController extends GetxController {
   static WishlistController get instance => Get.find<WishlistController>();
-  
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _authService = FirebaseAuth.instance;
 
@@ -15,12 +18,10 @@ class WishlistController extends GetxController {
 
   // Collection references
   String get _usersCollection => 'users';
-  String get _productsCollection => 'products';
-
   // Initialize wishlist for the current user
   Future<void> initialize() async {
     if (_authService.currentUser == null) return;
-    
+
     if (!isInitialized.value) {
       await fetchWishlist();
       isInitialized.value = true;
@@ -37,7 +38,7 @@ class WishlistController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchWishlist();
+    isLoading.value = false;
   }
 
   // Get user's wishlist
@@ -46,15 +47,16 @@ class WishlistController extends GetxController {
       final user = _authService.currentUser;
       if (user == null) return [];
 
-      final doc = await _firestore.collection(_usersCollection).doc(user.uid).get();
+      final doc =
+          await _firestore.collection(_usersCollection).doc(user.uid).get();
       if (doc.exists) {
-        final data = doc.data() as Map<String, dynamic>?;
+        final data = doc.data();
         final wishlist = data?['wishlist'] as List<dynamic>?;
         return wishlist?.map((e) => e.toString()).toList() ?? [];
       }
       return [];
     } catch (e) {
-      Get.snackbar('Error', 'Failed to fetch wishlist');
+      _showMessage('Failed to fetch wishlist');
       return [];
     }
   }
@@ -64,29 +66,21 @@ class WishlistController extends GetxController {
     try {
       isLoading.value = true;
       final wishlistIds = await _getWishlistIds();
-      
+
       if (wishlistIds.isEmpty) {
         wishlistItems.clear();
         return;
       }
 
-      final products = await _firestore
-          .collection(_productsCollection)
-          .where(FieldPath.documentId, whereIn: wishlistIds)
-          .get();
-
-      // Map products and set isFavorite to true for all wishlist items
-      final wishlistProducts = products.docs
-          .map((doc) => StoreProductModel.fromJson({
-                'id': doc.id,
-                ...doc.data() as Map<String, dynamic>,
-                'isFavorite': true, // Ensure isFavorite is set to true
-              }))
+      final wishlistProducts = (await StoreService.getProductsByIds(
+        wishlistIds,
+      ))
+          .map((product) => product.copyWith(isFavorite: true))
           .toList();
 
       wishlistItems.assignAll(wishlistProducts);
     } catch (e) {
-      Get.snackbar('Error', 'Failed to load wishlist products');
+      _showMessage('Failed to load wishlist products');
     } finally {
       isLoading.value = false;
     }
@@ -174,16 +168,18 @@ class WishlistController extends GetxController {
       return false;
     }
   }
+
   void navigateToProductDetail(StoreProductModel product) {
     Get.toNamed('/product_detail', arguments: product);
   }
+
   // Toggle wishlist status
   // Toggle wishlist status with optimistic updates
   Future<bool> toggleWishlist(StoreProductModel product) async {
     try {
       final user = _authService.currentUser;
       if (user == null) {
-        Get.snackbar('Error', 'Please sign in to manage your wishlist');
+        _showMessage('Please sign in to manage your wishlist');
         return false;
       }
 
@@ -269,5 +265,16 @@ class WishlistController extends GetxController {
     } catch (e) {
       return false;
     }
+  }
+
+  void _showMessage(String message) {
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.black87,
+      textColor: Colors.white,
+      fontSize: 14,
+    );
   }
 }

@@ -13,29 +13,31 @@ class StoreScreenController extends GetxController {
   final RxList<StoreProductModel> saleProducts = <StoreProductModel>[].obs;
   final RxList<StoreProductModel> preOrderProducts = <StoreProductModel>[].obs;
   final RxList<StoreProductModel> searchResults = <StoreProductModel>[].obs;
-  
+
   // Pre-Order by upcoming months (dummy data)
-  final RxList<DateTime> upcomingMonths = <DateTime>[].obs; // e.g., next 3 months
+  final RxList<DateTime> upcomingMonths =
+      <DateTime>[].obs; // e.g., next 3 months
   final RxInt selectedPreOrderMonthIndex = 0.obs;
-  final RxMap<String, List<StoreProductModel>> preOrderByMonth = <String, List<StoreProductModel>>{}.obs; // key: yyyy-MM
-  
+  final RxMap<String, List<StoreProductModel>> preOrderByMonth =
+      <String, List<StoreProductModel>>{}.obs; // key: yyyy-MM
+
   // Loading states
   final RxBool isLoadingCategories = false.obs;
   final RxBool isLoadingNewArrivals = false.obs;
   final RxBool isLoadingSaleProducts = false.obs;
   final RxBool isLoadingPreOrders = false.obs;
   final RxBool isSearching = false.obs;
-  
+
   // UI state
   final RxInt currentCarouselIndex = 0.obs;
   final RxString searchQuery = ''.obs;
   final RxBool isSearchActive = false.obs;
-  
+
   // Auto-scroll carousel
   Timer? _carouselTimer;
   final RxBool isAutoScrolling = true.obs;
   late PageController pageController;
-  
+
   // Carousel images
   final List<String> carouselImages = [
     'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800&h=400&fit=crop',
@@ -127,10 +129,6 @@ class StoreScreenController extends GetxController {
       final all = await StoreService.getProducts();
       final preOrderItems = all.where((p) => p.isPreOrder).toList();
       preOrderProducts.assignAll(preOrderItems);
-      print("There are ${preOrderItems.length} pre-order products");
-      for(final a in all){
-        print("This is a product ${a.isPreOrder}");
-      }
       // Group pre-order items by their available month
       _groupPreOrdersByMonth(preOrderItems);
     } catch (e) {
@@ -143,30 +141,31 @@ class StoreScreenController extends GetxController {
       isLoadingPreOrders.value = false;
     }
   }
-  
+
   /// Group pre-order items by their available month
   void _groupPreOrdersByMonth(List<StoreProductModel> items) {
     preOrderByMonth.clear();
-    
+
     // Get unique months from available dates
     final months = items
         .where((p) => p.availableDate != null)
         .map((p) => DateTime(p.availableDate!.year, p.availableDate!.month))
         .toSet()
         .toList();
-    
+
     // Sort months chronologically
     months.sort((a, b) => a.compareTo(b));
-    
+
     // Update upcoming months with real pre-order months
     upcomingMonths.assignAll(months);
-    
+
     // Group items by month
     for (final item in items.where((p) => p.availableDate != null)) {
-      final monthKey = _monthKey(DateTime(item.availableDate!.year, item.availableDate!.month));
+      final monthKey = _monthKey(
+          DateTime(item.availableDate!.year, item.availableDate!.month));
       preOrderByMonth.putIfAbsent(monthKey, () => []).add(item);
     }
-    
+
     // Reset selected month index
     selectedPreOrderMonthIndex.value = 0;
   }
@@ -176,17 +175,14 @@ class StoreScreenController extends GetxController {
     _groupPreOrdersByMonth(preOrderProducts);
   }
 
-  String _monthKey(DateTime dt) => '${dt.year.toString().padLeft(4, '0')}-${dt.month.toString().padLeft(2, '0')}';
-
-  String _monthName(DateTime dt) {
-    const names = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    return names[dt.month - 1];
-  }
+  String _monthKey(DateTime dt) =>
+      '${dt.year.toString().padLeft(4, '0')}-${dt.month.toString().padLeft(2, '0')}';
 
   /// Exposed getter for currently selected month's pre-order items (dummy)
   List<StoreProductModel> get currentMonthPreOrders {
     if (upcomingMonths.isEmpty) return [];
-    final index = selectedPreOrderMonthIndex.value.clamp(0, upcomingMonths.length - 1);
+    final index =
+        selectedPreOrderMonthIndex.value.clamp(0, upcomingMonths.length - 1);
     final key = _monthKey(upcomingMonths[index]);
     return preOrderByMonth[key] ?? [];
   }
@@ -210,7 +206,7 @@ class StoreScreenController extends GetxController {
       isSearching.value = true;
       isSearchActive.value = true;
       searchQuery.value = query;
-      
+
       final result = await StoreService.searchProducts(query);
       searchResults.assignAll(result);
     } catch (e) {
@@ -241,7 +237,8 @@ class StoreScreenController extends GetxController {
     _carouselTimer?.cancel();
     _carouselTimer = Timer.periodic(Duration(seconds: 3), (timer) {
       if (isAutoScrolling.value && carouselImages.isNotEmpty) {
-        final nextIndex = (currentCarouselIndex.value + 1) % carouselImages.length;
+        final nextIndex =
+            (currentCarouselIndex.value + 1) % carouselImages.length;
         currentCarouselIndex.value = nextIndex;
         // Animate to the next page
         if (pageController.hasClients) {
@@ -301,7 +298,7 @@ class StoreScreenController extends GetxController {
       if (success) {
         // Update the product's favorite status in all lists
         _updateProductFavoriteStatus(product.id, !product.isFavorite);
-        
+
         Get.snackbar(
           product.isFavorite ? 'Removed from favorites' : 'Added to favorites',
           product.name,
@@ -323,25 +320,30 @@ class StoreScreenController extends GetxController {
     // Update in new arrivals
     final newArrivalIndex = newArrivals.indexWhere((p) => p.id == productId);
     if (newArrivalIndex != -1) {
-      newArrivals[newArrivalIndex] = newArrivals[newArrivalIndex].copyWith(isFavorite: isFavorite);
+      newArrivals[newArrivalIndex] =
+          newArrivals[newArrivalIndex].copyWith(isFavorite: isFavorite);
     }
 
     // Update in sale products
     final saleProductIndex = saleProducts.indexWhere((p) => p.id == productId);
     if (saleProductIndex != -1) {
-      saleProducts[saleProductIndex] = saleProducts[saleProductIndex].copyWith(isFavorite: isFavorite);
+      saleProducts[saleProductIndex] =
+          saleProducts[saleProductIndex].copyWith(isFavorite: isFavorite);
     }
 
     // Update in pre-order products
     final preOrderIndex = preOrderProducts.indexWhere((p) => p.id == productId);
     if (preOrderIndex != -1) {
-      preOrderProducts[preOrderIndex] = preOrderProducts[preOrderIndex].copyWith(isFavorite: isFavorite);
+      preOrderProducts[preOrderIndex] =
+          preOrderProducts[preOrderIndex].copyWith(isFavorite: isFavorite);
     }
 
     // Update in search results
-    final searchResultIndex = searchResults.indexWhere((p) => p.id == productId);
+    final searchResultIndex =
+        searchResults.indexWhere((p) => p.id == productId);
     if (searchResultIndex != -1) {
-      searchResults[searchResultIndex] = searchResults[searchResultIndex].copyWith(isFavorite: isFavorite);
+      searchResults[searchResultIndex] =
+          searchResults[searchResultIndex].copyWith(isFavorite: isFavorite);
     }
   }
 
@@ -351,9 +353,10 @@ class StoreScreenController extends GetxController {
   }
 
   /// Get loading state for any operation
-  bool get isLoading => isLoadingCategories.value || 
-                       isLoadingNewArrivals.value || 
-                       isLoadingSaleProducts.value || 
-                       isLoadingPreOrders.value || 
-                       isSearching.value;
+  bool get isLoading =>
+      isLoadingCategories.value ||
+      isLoadingNewArrivals.value ||
+      isLoadingSaleProducts.value ||
+      isLoadingPreOrders.value ||
+      isSearching.value;
 }

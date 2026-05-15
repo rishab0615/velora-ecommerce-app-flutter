@@ -3,8 +3,9 @@ import 'package:get/get.dart';
 
 import '../../../api_collection/dio_api_method.dart';
 import '../../data/controllers/auth_controller.dart';
-import '../../helper_widgets/validators.dart';
 import '../../routes/app_pages.dart';
+import '../../utils/firebase_auth_error_handler.dart';
+import '../../utils/validators.dart';
 
 class SignUpScreenController extends GetxController {
   final AuthController _authController = AuthController.instance;
@@ -20,6 +21,7 @@ class SignUpScreenController extends GetxController {
   final RxString emailError = ''.obs;
   final RxString passwordError = ''.obs;
   final RxString confirmPasswordError = ''.obs;
+  final RxString authError = ''.obs;
   final RxBool isTermsAccepted = false.obs;
   final RxBool isPasswordObscure = true.obs;
   final RxBool isConfirmPasswordObscure = true.obs;
@@ -52,6 +54,7 @@ class SignUpScreenController extends GetxController {
   }
 
   void validateForm() {
+    authError.value = '';
     usernameError.value =
         _validators.validateUsername(usernameController.text) ?? '';
     emailError.value = _validators.validateEmail(emailController.text) ?? '';
@@ -82,11 +85,35 @@ class SignUpScreenController extends GetxController {
       return;
     }
 
-    await _authController.register(
+    final errorCode = await _authController.register(
       email: emailController.text.trim(),
       password: passwordController.text.trim(),
       name: usernameController.text.trim(),
     );
+
+    if (errorCode != null) {
+      _showSignupAuthError(errorCode);
+      return;
+    }
+
+    DioClient.get().toAst('Verification email sent. Please verify and login.');
+    Get.offAllNamed(Routes.LOGIN_SCREEN);
+  }
+
+  void _showSignupAuthError(String errorCode) {
+    final message = FirebaseAuthErrorMapper.message(errorCode);
+
+    if (errorCode == 'email-already-in-use' || errorCode == 'invalid-email') {
+      emailError.value = message;
+      return;
+    }
+
+    if (errorCode == 'weak-password') {
+      passwordError.value = message;
+      return;
+    }
+
+    authError.value = message;
   }
 
   String _firstValidationError() {

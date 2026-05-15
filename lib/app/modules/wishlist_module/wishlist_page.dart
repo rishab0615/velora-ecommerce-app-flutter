@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:amici/app/modules/wishlist_module/wishlist_controller.dart';
-import 'package:amici/app/theme/app_colors.dart';
 import 'package:amici/app/helper_widgets/store_widgets.dart';
-import 'package:amici/app/data/models/store_product_model.dart';
 
 import '../../routes/app_pages.dart';
 
@@ -15,13 +13,16 @@ class WishlistPage extends GetView<WishlistController> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('My Wishlist',style: TextStyle(color: Colors.black),),
+        title: const Text(
+          'My Wishlist',
+          style: TextStyle(color: Colors.black),
+        ),
         automaticallyImplyLeading: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Get.back(),
+          onPressed: () => Navigator.of(context).maybePop(),
         ),
-      backgroundColor: Colors.white,
+        backgroundColor: Colors.white,
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -102,5 +103,4 @@ class WishlistPage extends GetView<WishlistController> {
   }
 }
 
-class CustomAppBar {
-}
+class CustomAppBar {}

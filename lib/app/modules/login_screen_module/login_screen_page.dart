@@ -83,7 +83,7 @@ class LoginScreenPage extends GetView<LoginScreenController> {
                     obscureText: controller.isObscure.value,
                     errorText: controller.passwordError.value,
                     textInputAction: TextInputAction.done,
-                    onChanged: (_) => controller.validateForm(),
+                    onChanged: (_) => controller.validatePassword(),
                     inputFormatters: [
                       LengthLimitingTextInputFormatter(30),
                       NoSpaceFormatter(),
@@ -121,7 +121,36 @@ class LoginScreenPage extends GetView<LoginScreenController> {
                 ),
 
                 SizedBox(height: 4.h),
+                Obx(() {
+                  if (controller.authError.value.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
 
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: 1.5.h),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          controller.authError.value,
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 9.sp,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        if (controller.canResendVerification.value) ...[
+                          SizedBox(height: 1.h),
+                          TextButton(
+                            onPressed: controller.resendVerificationEmail,
+                            child: const Text("Resend verification email"),
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                }),
+                SizedBox(height: 1.5.h),
                 // Login Button
                 Obx(() {
                   if (controller.isLoading.value) {

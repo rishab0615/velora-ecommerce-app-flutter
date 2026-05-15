@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../data/models/orders_model.dart';
+import '../../routes/app_pages.dart';
 import 'my_orders_controller.dart';
 
 class MyOrdersPage extends StatelessWidget {
@@ -92,55 +93,58 @@ class MyOrdersPage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              ...order.items.take(2).map((item) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  children: [
-                    // Container(
-                    //   width: 50,
-                    //   height: 50,
-                    //   decoration: BoxDecoration(
-                    //     borderRadius: BorderRadius.circular(8),
-                    //     image: DecorationImage(
-                    //       image: NetworkImage(item.image),
-                    //       fit: BoxFit.cover,
-                    //     ),
-                    //   ),
-                    // ),
-                    // const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.name,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
+              ...order.items
+                  .take(2)
+                  .map((item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          children: [
+                            // Container(
+                            //   width: 50,
+                            //   height: 50,
+                            //   decoration: BoxDecoration(
+                            //     borderRadius: BorderRadius.circular(8),
+                            //     image: DecorationImage(
+                            //       image: NetworkImage(item.image),
+                            //       fit: BoxFit.cover,
+                            //     ),
+                            //   ),
+                            // ),
+                            // const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.name,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Qty: ${item.quantity} • Size: ${item.size}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Qty: ${item.quantity} • Size: ${item.size}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
+                            Text(
+                              '\$${item.price.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      '\$${item.price.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              )).toList(),
+                          ],
+                        ),
+                      ))
+                  .toList(),
               if (order.items.length > 2) ...[
                 const SizedBox(height: 8),
                 Text(
@@ -206,7 +210,7 @@ class MyOrdersPage extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: () => Get.offAllNamed('/home'),
+            onPressed: () => Get.offAllNamed(Routes.HOME_SCREEN),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.black,
               foregroundColor: Colors.white,

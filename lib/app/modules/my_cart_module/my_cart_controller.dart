@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../data/models/cart_item_model.dart';
 import '../../data/services/cart_service.dart';
 import '../../routes/app_pages.dart';
@@ -45,7 +45,7 @@ class MyCartController extends GetxController {
   void _setupCartListener() {
     print('🔄 Setting up cart listener...');
     _cartSubscription = _cartService.getCartItemsStream().listen(
-          (items) {
+      (items) {
         print('📥 Received ${items.length} cart items');
         cartItems.assignAll(items);
         _calculateTotals();
@@ -55,11 +55,7 @@ class MyCartController extends GetxController {
       onError: (error) {
         print('❌ Error in cart listener: $error');
         isLoading.value = false;
-        Get.snackbar(
-          'Error',
-          'Failed to load cart items',
-          snackPosition: SnackPosition.BOTTOM,
-        );
+        _showMessage('Failed to load cart items');
       },
       onDone: () {
         print('🎉 Cart stream completed');
@@ -76,7 +72,7 @@ class MyCartController extends GetxController {
 
     // Calculate savings (if any)
     double savings = cartItems.fold(0.0, (sum, item) {
-      final originalPrice = item.product.price ?? item.product.price;
+      final originalPrice = item.product.price;
       return sum + ((originalPrice - item.product.offerPrice) * item.quantity);
     });
 
@@ -118,30 +114,18 @@ class MyCartController extends GetxController {
         _calculateTotals();
       });
 
-      Get.snackbar(
-        'Error',
-        'Failed to update quantity',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      _showMessage('Failed to update quantity');
     }
   }
+
   /// Remove item from cart
   Future<void> removeItem(String itemId) async {
     try {
       cartItems.removeWhere((item) => item.id == itemId);
       await _cartService.removeFromCart(itemId);
-      Get.snackbar(
-        'Removed',
-        'Item removed from cart',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: Duration(seconds: 2),
-      );
+      _showMessage('Item removed from cart');
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to remove item',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      _showMessage('Failed to remove item');
       rethrow;
     }
   }
@@ -150,56 +134,34 @@ class MyCartController extends GetxController {
   Future<void> clearCart() async {
     try {
       await _cartService.clearCart();
-      Get.back();
-      // Get.snackbar(
-      //   'Cart Cleared',
-      //   'All items removed from cart',
-      //   snackPosition: SnackPosition.BOTTOM,
-      //   duration: Duration(seconds: 2),
-      // );
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to clear cart',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      _showMessage('Failed to clear cart');
     }
   }
+
   /// Add item to cart
   Future<void> addToCart(CartItemModel item) async {
     try {
       await _cartService.addToCart(item);
-      Get.snackbar(
-        'Success',
-        '${item.product.name} added to cart',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: Duration(seconds: 2),
-      );
+      _showMessage('${item.product.name} added to cart');
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to add item to cart',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: Duration(seconds: 2),
-      );
+      _showMessage('Failed to add item to cart');
       print("This is he error  $e");
       rethrow;
     }
   }
+
   /// Proceed to checkout
   void proceedToCheckout() {
     if (cartItems.isEmpty) {
-      Get.snackbar(
-        'Empty Cart',
-        'Please add items to your cart before checkout',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      _showMessage('Please add items to your cart before checkout');
       return;
     }
 
     // Navigate to checkout page
     Get.toNamed(Routes.CHECKOUT_PAGE);
   }
+
   /// Manually refresh cart items
   Future<void> loadCartItems() async {
     try {
@@ -209,15 +171,13 @@ class MyCartController extends GetxController {
       cartItems.assignAll(items);
       _calculateTotals();
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to refresh cart items',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      _showMessage('Failed to refresh cart items');
     } finally {
       isLoading.value = false;
     }
-  }  /// Continue shopping
+  }
+
+  /// Continue shopping
   void continueShopping() {
     Get.offAllNamed(Routes.HOME_SCREEN);
   }
@@ -232,4 +192,15 @@ class MyCartController extends GetxController {
 
   /// Get total items count
   int get totalItems => itemCount.value;
+
+  void _showMessage(String message) {
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.black87,
+      textColor: Colors.white,
+      fontSize: 14,
+    );
+  }
 }

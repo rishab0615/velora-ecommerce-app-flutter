@@ -6,18 +6,16 @@ import '../../models/user_model.dart';
 class UserService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> createUser(
-UserModel user
-  ) async {
+  Future<void> createUser(UserModel user) async {
     try {
       await _firestore
           .collection('users')
           .doc(user.uid)
-          .set(user.toMap());
+          .set(user.toMap(), SetOptions(merge: true));
 
-      debugPrint("User created in Firestore: $user.uid");
+      debugPrint('Firestore user document created/merged. UID: ${user.uid}');
     } catch (e) {
-      debugPrint("Firestore user creation failed: $e");
+      debugPrint('Firestore user creation failed. UID: ${user.uid}, Error: $e');
       rethrow;
     }
   }

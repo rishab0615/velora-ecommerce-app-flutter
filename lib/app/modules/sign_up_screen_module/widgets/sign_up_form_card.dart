@@ -53,11 +53,38 @@ class SignUpFormCard extends StatelessWidget {
           SizedBox(height: 2.h),
           _SignUpTermsCheckbox(controller: controller),
           SizedBox(height: 2.h),
+          Obx(
+            () => controller.authError.value.isEmpty
+                ? const SizedBox.shrink()
+                : _SignUpAuthError(message: controller.authError.value),
+          ),
+          SizedBox(height: 2.h),
           _SignUpSubmitButton(controller: controller),
           SizedBox(height: 2.h),
           _SignUpLoginPrompt(controller: controller),
           SizedBox(height: 2.h),
         ],
+      ),
+    );
+  }
+}
+
+class _SignUpAuthError extends StatelessWidget {
+  const _SignUpAuthError({
+    required this.message,
+  });
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      message,
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        color: Colors.red,
+        fontSize: 10.sp,
+        fontWeight: FontWeight.w500,
       ),
     );
   }

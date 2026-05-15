@@ -9,11 +9,11 @@ import '../../routes/app_pages.dart';
  * GetX Template Generator - fb.com/htngu.99
  * */
 
-class SplashScreenController extends GetxController{
+class SplashScreenController extends GetxController {
   final StorageService storageService = StorageService();
 
   @override
-  void onInit() async{
+  void onInit() async {
     super.onInit();
     final bool hasSeenOnboarding = await storageService.hasSeenOnboarding();
 
@@ -26,18 +26,16 @@ class SplashScreenController extends GetxController{
         return;
       }
 
-      // If user is already authenticated (Firebase persists sessions), keep them logged in
       if (currentUser != null) {
         if (currentUser.emailVerified) {
           Get.offAllNamed(Routes.HOME_SCREEN);
         } else {
-          Get.offAllNamed(Routes.EMAIL_VERIFICATION_SCREEN);
+          await FirebaseAuth.instance.signOut();
+          Get.offAllNamed(Routes.LOGIN_SCREEN);
         }
       } else {
-        // Not authenticated yet
         Get.offAllNamed(Routes.LOGIN_SCREEN);
       }
     });
   }
-
 }
